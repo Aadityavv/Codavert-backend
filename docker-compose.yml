@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: codavert-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: codavert_db
+      POSTGRES_USER: codavert_user
+      POSTGRES_PASSWORD: codavert_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - codavert-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codavert_user -d codavert_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codavert-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/codavert_db
+      SPRING_DATASOURCE_USERNAME: codavert_user
+      SPRING_DATASOURCE_PASSWORD: codavert_password
+      
+      # JPA/Hibernate Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+      
+      # JWT Configuration
+      JWT_SECRET: your-very-secure-secret-key-change-this-in-production-min-512-bits
+      JWT_EXPIRATION: 86400000
+      
+      # Mail Configuration (Optional - Update with your SMTP settings)
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: your-email@gmail.com
+      SPRING_MAIL_PASSWORD: your-app-password
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      
+      # Server Configuration
+      SERVER_PORT: 8080
+      
+      # CORS Configuration
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      
+      # Actuator
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
+      
+      # Profile
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - codavert-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  codavert-network:
+    driver: bridge
+
