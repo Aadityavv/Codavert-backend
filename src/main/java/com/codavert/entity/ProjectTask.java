@@ -1,74 +1,74 @@
 package com.codavert.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "project_tasks")
-@EntityListeners(AuditingEntityListener.class)
 public class ProjectTask {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @NotBlank
-    @Size(max = 200)
+    @Column(nullable = false)
+    private Long projectId;
+    
+    @Column(nullable = false)
     private String title;
     
-    @Size(max = 1000)
+    @Column(columnDefinition = "TEXT")
     private String description;
     
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
+    @Column(nullable = false)
     private TaskStatus status = TaskStatus.TODO;
     
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private Priority priority = Priority.MEDIUM;
+    private TaskPriority priority = TaskPriority.MEDIUM;
     
-    @Column(name = "due_date")
+    private Long assignedToUserId;
+    
+    private LocalDate startDate;
+    
     private LocalDate dueDate;
     
-    @Column(name = "estimated_hours")
-    private Integer estimatedHours;
+    private LocalDateTime completedAt;
     
-    @Column(name = "actual_hours")
-    private Integer actualHours = 0;
+    private Double estimatedHours;
     
-    @Column(name = "progress_percentage")
-    private Integer progressPercentage = 0;
+    private Double actualHours;
     
-    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
     
-    @LastModifiedDate
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    // Enums
+    public enum TaskStatus {
+        TODO,
+        IN_PROGRESS,
+        COMPLETED,
+        BLOCKED,
+        CANCELLED
+    }
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assigned_user_id")
-    private User assignedUser;
+    public enum TaskPriority {
+        LOW,
+        MEDIUM,
+        HIGH,
+        URGENT
+    }
     
     // Constructors
     public ProjectTask() {}
     
-    public ProjectTask(String title, String description, Project project) {
+    public ProjectTask(Long projectId, String title, String description) {
+        this.projectId = projectId;
         this.title = title;
         this.description = description;
-        this.project = project;
     }
     
     // Getters and Setters
@@ -78,6 +78,14 @@ public class ProjectTask {
     
     public void setId(Long id) {
         this.id = id;
+    }
+    
+    public Long getProjectId() {
+        return projectId;
+    }
+    
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
     }
     
     public String getTitle() {
@@ -102,14 +110,33 @@ public class ProjectTask {
     
     public void setStatus(TaskStatus status) {
         this.status = status;
+        if (status == TaskStatus.COMPLETED && this.completedAt == null) {
+            this.completedAt = LocalDateTime.now();
+        }
     }
     
-    public Priority getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
     
-    public void setPriority(Priority priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
+    }
+    
+    public Long getAssignedToUserId() {
+        return assignedToUserId;
+    }
+    
+    public void setAssignedToUserId(Long assignedToUserId) {
+        this.assignedToUserId = assignedToUserId;
+    }
+    
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+    
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
     
     public LocalDate getDueDate() {
@@ -120,28 +147,28 @@ public class ProjectTask {
         this.dueDate = dueDate;
     }
     
-    public Integer getEstimatedHours() {
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+    
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
+    
+    public Double getEstimatedHours() {
         return estimatedHours;
     }
     
-    public void setEstimatedHours(Integer estimatedHours) {
+    public void setEstimatedHours(Double estimatedHours) {
         this.estimatedHours = estimatedHours;
     }
     
-    public Integer getActualHours() {
+    public Double getActualHours() {
         return actualHours;
     }
     
-    public void setActualHours(Integer actualHours) {
+    public void setActualHours(Double actualHours) {
         this.actualHours = actualHours;
-    }
-    
-    public Integer getProgressPercentage() {
-        return progressPercentage;
-    }
-    
-    public void setProgressPercentage(Integer progressPercentage) {
-        this.progressPercentage = progressPercentage;
     }
     
     public LocalDateTime getCreatedAt() {
@@ -160,28 +187,16 @@ public class ProjectTask {
         this.updatedAt = updatedAt;
     }
     
-    public Project getProject() {
-        return project;
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
     
-    public void setProject(Project project) {
-        this.project = project;
-    }
-    
-    public User getAssignedUser() {
-        return assignedUser;
-    }
-    
-    public void setAssignedUser(User assignedUser) {
-        this.assignedUser = assignedUser;
-    }
-    
-    // Enums
-    public enum TaskStatus {
-        TODO, IN_PROGRESS, REVIEW, TESTING, COMPLETED, CANCELLED
-    }
-    
-    public enum Priority {
-        LOW, MEDIUM, HIGH, URGENT
+    @PrePersist
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -24,11 +24,33 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
     
-    @Value("${contact.recipient.email}")
+    @Value("${contact.recipient.email:}")
     private String recipientEmail;
     
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:}")
     private String fromEmail;
+    
+    @Value("${spring.mail.password:}")
+    private String mailPassword;
+    
+    /**
+     * Check if email is properly configured
+     */
+    private boolean isEmailConfigured() {
+        boolean configured = fromEmail != null && !fromEmail.isEmpty() 
+                && recipientEmail != null && !recipientEmail.isEmpty()
+                && mailPassword != null && !mailPassword.isEmpty();
+        
+        if (!configured) {
+            logger.warn("⚠️ Email is not properly configured. Skipping email notification.");
+            logger.warn("💡 To enable email notifications, please configure:");
+            logger.warn("   - MAIL_USERNAME (spring.mail.username)");
+            logger.warn("   - MAIL_PASSWORD (spring.mail.password)");
+            logger.warn("   - CONTACT_EMAIL (contact.recipient.email)");
+        }
+        
+        return configured;
+    }
     
     /**
      * Send contact form notification email asynchronously
@@ -36,6 +58,12 @@ public class EmailService {
      */
     @Async
     public void sendContactFormEmail(ContactFormDto contactForm) {
+        // Check if email is configured before attempting to send
+        if (!isEmailConfigured()) {
+            logger.info("📧 Email notification skipped (not configured) for: {}", contactForm.getEmail());
+            return;
+        }
+        
         try {
             logger.info("📧 Attempting to send email FROM: {} TO: {}", fromEmail, recipientEmail);
             
@@ -54,10 +82,10 @@ public class EmailService {
             logger.info("✅ Email sent successfully FROM: {} TO: {}", fromEmail, recipientEmail);
             
         } catch (MessagingException e) {
-            logger.error("❌ Failed to send email FROM: {} TO: {} - Error: {}", fromEmail, recipientEmail, e.getMessage());
+            logger.warn("❌ Failed to send email - MessagingException: {}", e.getMessage());
             // Don't throw exception - this is async, just log it
         } catch (Exception e) {
-            logger.error("❌ Unexpected error sending email: {}", e.getMessage(), e);
+            logger.warn("❌ Email sending failed: {} (This is expected if email is not configured on cloud platforms)", e.getMessage());
         }
     }
     

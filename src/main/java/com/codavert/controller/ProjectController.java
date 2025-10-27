@@ -3,6 +3,7 @@ package com.codavert.controller;
 import com.codavert.dto.ProjectDto;
 import com.codavert.entity.Project;
 import com.codavert.service.ProjectService;
+import com.codavert.service.ActivityLogService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,9 @@ public class ProjectController {
     
     @Autowired
     private ProjectService projectService;
+    
+    @Autowired
+    private ActivityLogService activityLogService;
     
     @GetMapping
     public ResponseEntity<Page<Project>> getAllProjects(@RequestParam Long userId, Pageable pageable) {
@@ -41,14 +45,23 @@ public class ProjectController {
             projectDto.setTitle(projectDto.getName());
         }
         Project project = projectService.createProject(projectDto, userId);
+        
+        // Log activity
+        activityLogService.logProjectCreated(userId, project.getId(), project.getTitle());
+        
         return ResponseEntity.ok(project);
     }
     
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProject(@PathVariable Long id, 
+                                          @RequestParam Long userId,
                                           @Valid @RequestBody ProjectDto projectDto) {
         try {
             Project project = projectService.updateProject(id, projectDto);
+            
+            // Log activity
+            activityLogService.logProjectUpdated(userId, project.getId(), project.getTitle());
+            
             return ResponseEntity.ok(project);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -56,8 +69,15 @@ public class ProjectController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProject(@PathVariable Long id) {
+    public ResponseEntity<?> deleteProject(@PathVariable Long id,
+                                          @RequestParam Long userId,
+                                          @RequestParam(required = false) String projectName) {
         try {
+            // Log activity before deletion
+            if (projectName != null) {
+                activityLogService.logProjectDeleted(userId, id, projectName);
+            }
+            
             projectService.deleteProject(id);
             return ResponseEntity.ok("Project deleted successfully");
         } catch (RuntimeException e) {

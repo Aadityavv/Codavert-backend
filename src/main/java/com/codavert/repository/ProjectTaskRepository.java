@@ -1,6 +1,7 @@
 package com.codavert.repository;
 
 import com.codavert.entity.ProjectTask;
+import com.codavert.entity.ProjectTask.TaskStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,46 +15,46 @@ import java.util.List;
 @Repository
 public interface ProjectTaskRepository extends JpaRepository<ProjectTask, Long> {
     
-    List<ProjectTask> findByProjectId(Long projectId);
-    
+    // Find all tasks for a project
     Page<ProjectTask> findByProjectId(Long projectId, Pageable pageable);
     
-    List<ProjectTask> findByAssignedUserId(Long assignedUserId);
+    List<ProjectTask> findByProjectId(Long projectId);
     
-    Page<ProjectTask> findByAssignedUserId(Long assignedUserId, Pageable pageable);
+    // Find tasks by project and status
+    List<ProjectTask> findByProjectIdAndStatus(Long projectId, TaskStatus status);
     
-    @Query("SELECT pt FROM ProjectTask pt WHERE pt.project.id = :projectId AND pt.status = :status")
-    Page<ProjectTask> findByProjectIdAndStatus(@Param("projectId") Long projectId, 
-                                              @Param("status") ProjectTask.TaskStatus status, 
-                                              Pageable pageable);
+    // Find tasks assigned to a user
+    Page<ProjectTask> findByAssignedToUserId(Long userId, Pageable pageable);
     
-    @Query("SELECT pt FROM ProjectTask pt WHERE pt.assignedUser.id = :userId AND pt.status = :status")
-    Page<ProjectTask> findByAssignedUserIdAndStatus(@Param("userId") Long userId, 
-                                                   @Param("status") ProjectTask.TaskStatus status, 
-                                                   Pageable pageable);
+    // Find tasks by project and assigned user
+    List<ProjectTask> findByProjectIdAndAssignedToUserId(Long projectId, Long userId);
     
-    @Query("SELECT pt FROM ProjectTask pt WHERE pt.project.id = :projectId AND pt.dueDate < :date AND pt.status != 'COMPLETED'")
-    List<ProjectTask> findOverdueTasksByProjectId(@Param("projectId") Long projectId, 
-                                                 @Param("date") LocalDate date);
+    // Count tasks by project
+    long countByProjectId(Long projectId);
     
-    @Query("SELECT pt FROM ProjectTask pt WHERE pt.assignedUser.id = :userId AND pt.dueDate < :date AND pt.status != 'COMPLETED'")
-    List<ProjectTask> findOverdueTasksByUserId(@Param("userId") Long userId, 
-                                             @Param("date") LocalDate date);
+    // Count tasks by project and status
+    long countByProjectIdAndStatus(Long projectId, TaskStatus status);
     
-    @Query("SELECT pt FROM ProjectTask pt WHERE pt.project.id = :projectId AND " +
-           "(LOWER(pt.title) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
-           "LOWER(pt.description) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
-    Page<ProjectTask> searchTasksByProjectId(@Param("projectId") Long projectId, 
-                                            @Param("searchTerm") String searchTerm, 
-                                            Pageable pageable);
+    // Find overdue tasks
+    @Query("SELECT t FROM ProjectTask t WHERE t.projectId = :projectId " +
+           "AND t.dueDate < :currentDate AND t.status NOT IN ('COMPLETED', 'CANCELLED')")
+    List<ProjectTask> findOverdueTasks(@Param("projectId") Long projectId, 
+                                      @Param("currentDate") LocalDate currentDate);
     
-    @Query("SELECT COUNT(pt) FROM ProjectTask pt WHERE pt.project.id = :projectId")
-    Long countByProjectId(@Param("projectId") Long projectId);
+    // Get task statistics for a project
+    @Query("SELECT t.status as status, COUNT(t) as count FROM ProjectTask t " +
+           "WHERE t.projectId = :projectId GROUP BY t.status")
+    List<Object[]> getTaskStatsByProject(@Param("projectId") Long projectId);
     
-    @Query("SELECT COUNT(pt) FROM ProjectTask pt WHERE pt.project.id = :projectId AND pt.status = :status")
-    Long countByProjectIdAndStatus(@Param("projectId") Long projectId, 
-                                  @Param("status") ProjectTask.TaskStatus status);
+    // Get upcoming tasks (due in next N days)
+    @Query("SELECT t FROM ProjectTask t WHERE t.projectId = :projectId " +
+           "AND t.dueDate BETWEEN :startDate AND :endDate " +
+           "AND t.status NOT IN ('COMPLETED', 'CANCELLED') " +
+           "ORDER BY t.dueDate ASC")
+    List<ProjectTask> findUpcomingTasks(@Param("projectId") Long projectId,
+                                        @Param("startDate") LocalDate startDate,
+                                        @Param("endDate") LocalDate endDate);
     
-    @Query("SELECT SUM(pt.actualHours) FROM ProjectTask pt WHERE pt.project.id = :projectId")
-    Integer sumActualHoursByProjectId(@Param("projectId") Long projectId);
+    // Delete all tasks for a project
+    void deleteByProjectId(Long projectId);
 }

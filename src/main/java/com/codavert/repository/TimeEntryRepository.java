@@ -5,54 +5,36 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long> {
     
-    List<TimeEntry> findByUserId(Long userId);
+    Page<TimeEntry> findByUserIdOrderByStartTimeDesc(Long userId, Pageable pageable);
     
-    Page<TimeEntry> findByUserId(Long userId, Pageable pageable);
+    Page<TimeEntry> findByProjectIdOrderByStartTimeDesc(Long projectId, Pageable pageable);
     
-    List<TimeEntry> findByProjectId(Long projectId);
+    Page<TimeEntry> findByTaskIdOrderByStartTimeDesc(Long taskId, Pageable pageable);
     
-    Page<TimeEntry> findByProjectId(Long projectId, Pageable pageable);
+    Page<TimeEntry> findByUserIdAndProjectIdOrderByStartTimeDesc(Long userId, Long projectId, Pageable pageable);
     
-    @Query("SELECT te FROM TimeEntry te WHERE te.user.id = :userId AND te.entryDate BETWEEN :startDate AND :endDate")
-    List<TimeEntry> findByUserIdAndDateRange(@Param("userId") Long userId, 
-                                            @Param("startDate") LocalDate startDate, 
-                                            @Param("endDate") LocalDate endDate);
+    List<TimeEntry> findByUserIdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
     
-    @Query("SELECT te FROM TimeEntry te WHERE te.project.id = :projectId AND te.entryDate BETWEEN :startDate AND :endDate")
-    List<TimeEntry> findByProjectIdAndDateRange(@Param("projectId") Long projectId, 
-                                               @Param("startDate") LocalDate startDate, 
-                                               @Param("endDate") LocalDate endDate);
+    List<TimeEntry> findByProjectIdAndStartTimeBetween(Long projectId, LocalDateTime start, LocalDateTime end);
     
-    @Query("SELECT te FROM TimeEntry te WHERE te.user.id = :userId AND te.status = :status")
-    Page<TimeEntry> findByUserIdAndStatus(@Param("userId") Long userId, 
-                                         @Param("status") TimeEntry.TimeEntryStatus status, 
-                                         Pageable pageable);
+    @Query("SELECT SUM(t.hoursLogged) FROM TimeEntry t WHERE t.projectId = ?1 AND t.status = 'APPROVED'")
+    Double sumApprovedHoursByProjectId(Long projectId);
     
-    @Query("SELECT SUM(te.hoursWorked) FROM TimeEntry te WHERE te.user.id = :userId AND te.entryDate BETWEEN :startDate AND :endDate")
-    Double sumHoursByUserIdAndDateRange(@Param("userId") Long userId, 
-                                       @Param("startDate") LocalDate startDate, 
-                                       @Param("endDate") LocalDate endDate);
+    @Query("SELECT SUM(t.hoursLogged) FROM TimeEntry t WHERE t.taskId = ?1 AND t.status = 'APPROVED'")
+    Double sumApprovedHoursByTaskId(Long taskId);
     
-    @Query("SELECT SUM(te.hoursWorked) FROM TimeEntry te WHERE te.project.id = :projectId")
-    Double sumHoursByProjectId(@Param("projectId") Long projectId);
+    @Query("SELECT SUM(t.hoursLogged) FROM TimeEntry t WHERE t.userId = ?1 AND t.startTime >= ?2 AND t.startTime < ?3")
+    Double sumHoursByUserIdAndDateRange(Long userId, LocalDateTime start, LocalDateTime end);
     
-    @Query("SELECT SUM(te.totalAmount) FROM TimeEntry te WHERE te.user.id = :userId AND te.entryDate BETWEEN :startDate AND :endDate")
-    Double sumAmountByUserIdAndDateRange(@Param("userId") Long userId, 
-                                        @Param("startDate") LocalDate startDate, 
-                                        @Param("endDate") LocalDate endDate);
+    long countByUserIdAndStatus(Long userId, TimeEntry.EntryStatus status);
     
-    @Query("SELECT COUNT(te) FROM TimeEntry te WHERE te.user.id = :userId")
-    Long countByUserId(@Param("userId") Long userId);
-    
-    @Query("SELECT COUNT(te) FROM TimeEntry te WHERE te.project.id = :projectId")
-    Long countByProjectId(@Param("projectId") Long projectId);
+    long countByProjectIdAndStatus(Long projectId, TimeEntry.EntryStatus status);
 }
