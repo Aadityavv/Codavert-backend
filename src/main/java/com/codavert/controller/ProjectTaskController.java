@@ -1,8 +1,10 @@
 package com.codavert.controller;
 
 import com.codavert.dto.ProjectTaskDto;
+import com.codavert.entity.Project;
 import com.codavert.entity.ProjectTask;
 import com.codavert.entity.ProjectTask.TaskStatus;
+import com.codavert.repository.ProjectRepository;
 import com.codavert.repository.ProjectTaskRepository;
 import com.codavert.service.ActivityLogService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +33,9 @@ public class ProjectTaskController {
     private ProjectTaskRepository taskRepository;
     
     @Autowired
+    private ProjectRepository projectRepository;
+    
+    @Autowired
     private ActivityLogService activityLogService;
     
     @GetMapping("/project/{projectId}")
@@ -42,7 +47,7 @@ public class ProjectTaskController {
             @RequestParam(defaultValue = "dueDate") String sortBy) {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<ProjectTask> tasks = taskRepository.findByProjectId(projectId, pageable);
+        Page<ProjectTask> tasks = taskRepository.findByProject_Id(projectId, pageable);
         return ResponseEntity.ok(tasks);
     }
     
@@ -59,8 +64,13 @@ public class ProjectTaskController {
     public ResponseEntity<ProjectTask> createTask(
             @Valid @RequestBody ProjectTaskDto taskDto,
             @RequestParam(required = false) Long userId) {
+        
+        // Find the project
+        Project project = projectRepository.findById(taskDto.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + taskDto.getProjectId()));
+        
         ProjectTask task = new ProjectTask();
-        task.setProjectId(taskDto.getProjectId());
+        task.setProject(project);
         task.setTitle(taskDto.getTitle());
         task.setDescription(taskDto.getDescription());
         task.setStatus(taskDto.getStatus() != null ? taskDto.getStatus() : TaskStatus.TODO);
@@ -138,11 +148,11 @@ public class ProjectTaskController {
     public ResponseEntity<Map<String, Object>> getProjectTaskStatistics(@PathVariable Long projectId) {
         Map<String, Object> stats = new HashMap<>();
         
-        long totalTasks = taskRepository.countByProjectId(projectId);
-        long todoTasks = taskRepository.countByProjectIdAndStatus(projectId, TaskStatus.TODO);
-        long inProgressTasks = taskRepository.countByProjectIdAndStatus(projectId, TaskStatus.IN_PROGRESS);
-        long completedTasks = taskRepository.countByProjectIdAndStatus(projectId, TaskStatus.COMPLETED);
-        long blockedTasks = taskRepository.countByProjectIdAndStatus(projectId, TaskStatus.BLOCKED);
+        long totalTasks = taskRepository.countByProject_Id(projectId);
+        long todoTasks = taskRepository.countByProject_IdAndStatus(projectId, TaskStatus.TODO);
+        long inProgressTasks = taskRepository.countByProject_IdAndStatus(projectId, TaskStatus.IN_PROGRESS);
+        long completedTasks = taskRepository.countByProject_IdAndStatus(projectId, TaskStatus.COMPLETED);
+        long blockedTasks = taskRepository.countByProject_IdAndStatus(projectId, TaskStatus.BLOCKED);
         
         stats.put("totalTasks", totalTasks);
         stats.put("todoTasks", todoTasks);
@@ -175,7 +185,7 @@ public class ProjectTaskController {
             @PathVariable Long projectId,
             @RequestParam TaskStatus status) {
         
-        List<ProjectTask> tasks = taskRepository.findByProjectIdAndStatus(projectId, status);
+        List<ProjectTask> tasks = taskRepository.findByProject_IdAndStatus(projectId, status);
         return ResponseEntity.ok(tasks);
     }
     

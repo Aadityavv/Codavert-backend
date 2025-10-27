@@ -16,13 +16,17 @@ public class TimeEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false)
-    private Long projectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
-    private Long taskId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_id")
+    private ProjectTask task;
 
     @Column(nullable = false)
     private String description;
@@ -88,28 +92,40 @@ public class TimeEntry {
         this.id = id;
     }
 
-    public Long getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public Long getProjectId() {
-        return projectId;
+        return project != null ? project.getId() : null;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public ProjectTask getTask() {
+        return task;
+    }
+
+    public void setTask(ProjectTask task) {
+        this.task = task;
     }
 
     public Long getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(Long taskId) {
-        this.taskId = taskId;
+        return task != null ? task.getId() : null;
     }
 
     public String getDescription() {

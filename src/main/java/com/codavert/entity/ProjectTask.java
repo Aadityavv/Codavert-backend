@@ -12,8 +12,9 @@ public class ProjectTask {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
-    private Long projectId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
     
     @Column(nullable = false)
     private String title;
@@ -65,8 +66,8 @@ public class ProjectTask {
     // Constructors
     public ProjectTask() {}
     
-    public ProjectTask(Long projectId, String title, String description) {
-        this.projectId = projectId;
+    public ProjectTask(Project project, String title, String description) {
+        this.project = project;
         this.title = title;
         this.description = description;
     }
@@ -80,12 +81,17 @@ public class ProjectTask {
         this.id = id;
     }
     
-    public Long getProjectId() {
-        return projectId;
+    public Project getProject() {
+        return project;
     }
     
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setProject(Project project) {
+        this.project = project;
+    }
+    
+    // Convenience method to get projectId
+    public Long getProjectId() {
+        return project != null ? project.getId() : null;
     }
     
     public String getTitle() {

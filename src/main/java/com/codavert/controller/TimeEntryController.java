@@ -1,8 +1,14 @@
 package com.codavert.controller;
 
 import com.codavert.dto.TimeEntryDto;
+import com.codavert.entity.Project;
+import com.codavert.entity.ProjectTask;
 import com.codavert.entity.TimeEntry;
+import com.codavert.entity.User;
+import com.codavert.repository.ProjectRepository;
+import com.codavert.repository.ProjectTaskRepository;
 import com.codavert.repository.TimeEntryRepository;
+import com.codavert.repository.UserRepository;
 import com.codavert.service.ActivityLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +36,15 @@ public class TimeEntryController {
     private TimeEntryRepository timeEntryRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
+    private ProjectTaskRepository taskRepository;
+
+    @Autowired
     private ActivityLogService activityLogService;
 
     @GetMapping
@@ -40,7 +55,7 @@ public class TimeEntryController {
             @RequestParam(defaultValue = "20") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<TimeEntry> entries = timeEntryRepository.findByUserIdOrderByStartTimeDesc(userId, pageable);
+        Page<TimeEntry> entries = timeEntryRepository.findByUser_IdOrderByStartTimeDesc(userId, pageable);
         Page<TimeEntryDto> dtos = entries.map(TimeEntryDto::fromEntity);
         return ResponseEntity.ok(dtos);
     }
@@ -62,7 +77,7 @@ public class TimeEntryController {
             @RequestParam(defaultValue = "20") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<TimeEntry> entries = timeEntryRepository.findByProjectIdOrderByStartTimeDesc(projectId, pageable);
+        Page<TimeEntry> entries = timeEntryRepository.findByProject_IdOrderByStartTimeDesc(projectId, pageable);
         Page<TimeEntryDto> dtos = entries.map(TimeEntryDto::fromEntity);
         return ResponseEntity.ok(dtos);
     }
@@ -75,7 +90,7 @@ public class TimeEntryController {
             @RequestParam(defaultValue = "20") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<TimeEntry> entries = timeEntryRepository.findByTaskIdOrderByStartTimeDesc(taskId, pageable);
+        Page<TimeEntry> entries = timeEntryRepository.findByTask_IdOrderByStartTimeDesc(taskId, pageable);
         Page<TimeEntryDto> dtos = entries.map(TimeEntryDto::fromEntity);
         return ResponseEntity.ok(dtos);
     }
@@ -86,10 +101,24 @@ public class TimeEntryController {
             @Valid @RequestBody TimeEntryDto entryDto,
             @RequestParam(required = false) Long userId) {
         
+        // Fetch related entities
+        User user = userRepository.findById(entryDto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + entryDto.getUserId()));
+        
+        Project project = projectRepository.findById(entryDto.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + entryDto.getProjectId()));
+        
         TimeEntry entry = new TimeEntry();
-        entry.setUserId(entryDto.getUserId());
-        entry.setProjectId(entryDto.getProjectId());
-        entry.setTaskId(entryDto.getTaskId());
+        entry.setUser(user);
+        entry.setProject(project);
+        
+        // Task is optional
+        if (entryDto.getTaskId() != null) {
+            ProjectTask task = taskRepository.findById(entryDto.getTaskId())
+                    .orElseThrow(() -> new RuntimeException("Task not found with id: " + entryDto.getTaskId()));
+            entry.setTask(task);
+        }
+        
         entry.setDescription(entryDto.getDescription());
         entry.setStartTime(entryDto.getStartTime());
         entry.setEndTime(entryDto.getEndTime());
@@ -159,9 +188,9 @@ public class TimeEntryController {
         Map<String, Object> stats = new HashMap<>();
         
         Double totalApprovedHours = timeEntryRepository.sumApprovedHoursByProjectId(projectId);
-        long draftEntries = timeEntryRepository.countByProjectIdAndStatus(projectId, TimeEntry.EntryStatus.DRAFT);
-        long submittedEntries = timeEntryRepository.countByProjectIdAndStatus(projectId, TimeEntry.EntryStatus.SUBMITTED);
-        long approvedEntries = timeEntryRepository.countByProjectIdAndStatus(projectId, TimeEntry.EntryStatus.APPROVED);
+        long draftEntries = timeEntryRepository.countByProject_IdAndStatus(projectId, TimeEntry.EntryStatus.DRAFT);
+        long submittedEntries = timeEntryRepository.countByProject_IdAndStatus(projectId, TimeEntry.EntryStatus.SUBMITTED);
+        long approvedEntries = timeEntryRepository.countByProject_IdAndStatus(projectId, TimeEntry.EntryStatus.APPROVED);
         
         stats.put("totalApprovedHours", totalApprovedHours != null ? totalApprovedHours : 0.0);
         stats.put("draftEntries", draftEntries);
