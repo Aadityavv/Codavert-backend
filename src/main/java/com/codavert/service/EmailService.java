@@ -3,6 +3,7 @@ package com.codavert.service;
 import com.codavert.dto.ContactFormDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -42,11 +43,8 @@ public class EmailService {
                 && mailPassword != null && !mailPassword.isEmpty();
         
         if (!configured) {
-            logger.warn("⚠️ Email is not properly configured. Skipping email notification.");
-            logger.warn("💡 To enable email notifications, please configure:");
-            logger.warn("   - MAIL_USERNAME (spring.mail.username)");
-            logger.warn("   - MAIL_PASSWORD (spring.mail.password)");
-            logger.warn("   - CONTACT_EMAIL (contact.recipient.email)");
+            logger.debug("Email is not configured. Contact form submissions will be saved to database only.");
+            logger.debug("To enable email notifications, set: MAIL_USERNAME, MAIL_PASSWORD, CONTACT_EMAIL");
         }
         
         return configured;
@@ -60,12 +58,12 @@ public class EmailService {
     public void sendContactFormEmail(ContactFormDto contactForm) {
         // Check if email is configured before attempting to send
         if (!isEmailConfigured()) {
-            logger.info("📧 Email notification skipped (not configured) for: {}", contactForm.getEmail());
+            logger.debug("Email notification skipped (not configured) for: {}", contactForm.getEmail());
             return;
         }
         
         try {
-            logger.info("📧 Attempting to send email FROM: {} TO: {}", fromEmail, recipientEmail);
+            logger.info("📧 Sending email notification for contact: {}", contactForm.getEmail());
             
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -77,15 +75,19 @@ public class EmailService {
             String htmlContent = buildHtmlEmail(contactForm);
             helper.setText(htmlContent, true);
             
-            logger.info("📤 Email message prepared, sending via SMTP...");
+            logger.debug("Email message prepared, sending via SMTP...");
             mailSender.send(message);
-            logger.info("✅ Email sent successfully FROM: {} TO: {}", fromEmail, recipientEmail);
+            logger.info("✅ Email sent successfully to: {}", recipientEmail);
             
         } catch (MessagingException e) {
-            logger.warn("❌ Failed to send email - MessagingException: {}", e.getMessage());
-            // Don't throw exception - this is async, just log it
+            logger.debug("Failed to send email (MessagingException): {}", e.getMessage());
+            // Don't throw exception - this is async, just log it at debug level
+        } catch (MailException e) {
+            logger.debug("Failed to send email (MailException): {}", e.getMessage());
+            // Mail connection failures are expected when not configured
         } catch (Exception e) {
-            logger.warn("❌ Email sending failed: {} (This is expected if email is not configured on cloud platforms)", e.getMessage());
+            logger.debug("Failed to send email: {}", e.getMessage());
+            // Don't clutter logs with expected failures
         }
     }
     
