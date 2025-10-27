@@ -34,6 +34,8 @@ public class EmailService {
      */
     public void sendContactFormEmail(ContactFormDto contactForm) {
         try {
+            logger.info("Attempting to send email FROM: {} TO: {}", fromEmail, recipientEmail);
+            
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             
@@ -44,11 +46,12 @@ public class EmailService {
             String htmlContent = buildHtmlEmail(contactForm);
             helper.setText(htmlContent, true);
             
+            logger.info("Email message prepared, sending via SMTP...");
             mailSender.send(message);
-            logger.info("Contact form email sent successfully to {}", recipientEmail);
+            logger.info("✅ Email sent successfully FROM: {} TO: {}", fromEmail, recipientEmail);
             
         } catch (MessagingException e) {
-            logger.error("Failed to send contact form email", e);
+            logger.error("❌ Failed to send email FROM: {} TO: {} - Error: {}", fromEmail, recipientEmail, e.getMessage());
             throw new RuntimeException("Failed to send email notification", e);
         }
     }
