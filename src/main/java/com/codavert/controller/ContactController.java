@@ -29,31 +29,26 @@ public class ContactController {
     @PostMapping("/submit")
     @Operation(summary = "Submit contact form", description = "Submit a contact form and send notification email")
     public ResponseEntity<Map<String, Object>> submitContactForm(@Valid @RequestBody ContactFormDto contactForm) {
-        logger.info("Received contact form submission from: {}", contactForm.getEmail());
+        logger.info("📨 Received contact form submission from: {}", contactForm.getEmail());
         
         Map<String, Object> response = new HashMap<>();
         
         // Log the contact form submission (could be saved to database here)
-        logger.info("Contact form data - Name: {}, Email: {}, Company: {}, Message: {}", 
+        logger.info("📝 Contact form data - Name: {}, Email: {}, Company: {}, Message: {}", 
                     contactForm.getFullName(), 
                     contactForm.getEmail(), 
                     contactForm.getCompany(), 
                     contactForm.getMessage());
         
-        // Try to send email notification, but don't fail if email is not configured
-        try {
-            emailService.sendContactFormEmail(contactForm);
-            logger.info("Email notification sent successfully for: {}", contactForm.getFullName());
-        } catch (Exception e) {
-            logger.warn("Failed to send email notification (this is okay if email is not configured): {}", e.getMessage());
-            // Continue anyway - email notification is optional
-        }
+        // Send email notification asynchronously (runs in background, doesn't block response)
+        emailService.sendContactFormEmail(contactForm);
+        logger.info("📧 Email notification queued for: {}", contactForm.getFullName());
         
-        // Always return success if the form was received and validated
+        // Return success immediately - don't wait for email to send
         response.put("success", true);
         response.put("message", "Thank you for contacting us! We'll get back to you shortly.");
         
-        logger.info("Contact form processed successfully for: {}", contactForm.getFullName());
+        logger.info("✅ Contact form processed successfully for: {}", contactForm.getFullName());
         return ResponseEntity.ok(response);
     }
     

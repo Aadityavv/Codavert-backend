@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -30,11 +31,13 @@ public class EmailService {
     private String fromEmail;
     
     /**
-     * Send contact form notification email
+     * Send contact form notification email asynchronously
+     * This runs in a separate thread so it doesn't block the HTTP response
      */
+    @Async
     public void sendContactFormEmail(ContactFormDto contactForm) {
         try {
-            logger.info("Attempting to send email FROM: {} TO: {}", fromEmail, recipientEmail);
+            logger.info("📧 Attempting to send email FROM: {} TO: {}", fromEmail, recipientEmail);
             
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -46,13 +49,15 @@ public class EmailService {
             String htmlContent = buildHtmlEmail(contactForm);
             helper.setText(htmlContent, true);
             
-            logger.info("Email message prepared, sending via SMTP...");
+            logger.info("📤 Email message prepared, sending via SMTP...");
             mailSender.send(message);
             logger.info("✅ Email sent successfully FROM: {} TO: {}", fromEmail, recipientEmail);
             
         } catch (MessagingException e) {
             logger.error("❌ Failed to send email FROM: {} TO: {} - Error: {}", fromEmail, recipientEmail, e.getMessage());
-            throw new RuntimeException("Failed to send email notification", e);
+            // Don't throw exception - this is async, just log it
+        } catch (Exception e) {
+            logger.error("❌ Unexpected error sending email: {}", e.getMessage(), e);
         }
     }
     
