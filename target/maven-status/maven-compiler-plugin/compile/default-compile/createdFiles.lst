@@ -29,6 +29,7 @@ com\codavert\repository\UserRepository.class
 com\codavert\entity\ProjectTask$TaskPriority.class
 com\codavert\dto\ProjectTaskDto.class
 com\codavert\config\DataInitializer.class
+com\codavert\dto\UserUpdateDto.class
 com\codavert\entity\ActivityLog$ActivityType.class
 com\codavert\entity\Project$ProjectStatus.class
 com\codavert\entity\ProjectTask.class
@@ -40,6 +41,7 @@ com\codavert\repository\ContactSubmissionRepository.class
 com\codavert\repository\ProjectTaskRepository.class
 com\codavert\config\SwaggerConfig.class
 com\codavert\service\InvoiceService.class
+com\codavert\dto\InvoiceDto.class
 com\codavert\security\UserPrincipal.class
 com\codavert\entity\ProjectDocument$DocumentStatus.class
 com\codavert\repository\ActivityLogRepository.class
@@ -52,7 +54,6 @@ com\codavert\dto\TimeEntryDto.class
 com\codavert\entity\Project$ProjectType.class
 com\codavert\dto\ActivityLogDto.class
 com\codavert\entity\ContactSubmission$SubmissionStatus.class
-com\codavert\service\InvoiceService$InvoiceDto.class
 com\codavert\controller\InvoiceController.class
 com\codavert\controller\ProjectController.class
 com\codavert\entity\ContactSubmission.class

@@ -1,5 +1,6 @@
 package com.codavert.service;
 
+import com.codavert.dto.InvoiceDto;
 import com.codavert.entity.Client;
 import com.codavert.entity.Invoice;
 import com.codavert.entity.Project;
@@ -20,14 +21,6 @@ import java.util.Optional;
 @Service
 public class InvoiceService {
 
-    public static class InvoiceDto {
-        public Long clientId;
-        public Long projectId;
-        public Double amount;
-        public String dueDate; // ISO date
-        public String description;
-    }
-
     @Autowired private InvoiceRepository invoiceRepository;
     @Autowired private ProjectRepository projectRepository;
     @Autowired private ClientRepository clientRepository;
@@ -42,22 +35,25 @@ public class InvoiceService {
     }
 
     public Invoice createInvoice(InvoiceDto dto) {
-        Project project = projectRepository.findById(dto.projectId)
-            .orElseThrow(() -> new RuntimeException("Project not found with id: " + dto.projectId));
-        Client client = clientRepository.findById(dto.clientId)
-            .orElseThrow(() -> new RuntimeException("Client not found with id: " + dto.clientId));
+        Project project = projectRepository.findById(dto.getProjectId())
+            .orElseThrow(() -> new RuntimeException("Project not found with id: " + dto.getProjectId()));
+        Client client = clientRepository.findById(dto.getClientId())
+            .orElseThrow(() -> new RuntimeException("Client not found with id: " + dto.getClientId()));
         User user = project.getUser();
 
-        String nextNumber = nextInvoiceNumber(user.getId());
+        String nextNumber = dto.getInvoiceNumber() != null ? dto.getInvoiceNumber() : nextInvoiceNumber(user.getId());
         Invoice invoice = new Invoice();
         invoice.setInvoiceNumber(nextNumber);
-        invoice.setInvoiceDate(LocalDate.now());
-        invoice.setDueDate(LocalDate.parse(dto.dueDate));
-        invoice.setSubtotal(BigDecimal.valueOf(dto.amount));
-        invoice.setTaxAmount(BigDecimal.ZERO);
-        invoice.setTotalAmount(BigDecimal.valueOf(dto.amount));
-        invoice.setNotes(dto.description);
-        invoice.setStatus(Invoice.InvoiceStatus.DRAFT);
+        invoice.setInvoiceDate(dto.getInvoiceDate() != null ? dto.getInvoiceDate() : LocalDate.now());
+        invoice.setDueDate(dto.getDueDate());
+        invoice.setSubtotal(dto.getSubtotal());
+        invoice.setTaxAmount(dto.getTaxAmount() != null ? dto.getTaxAmount() : BigDecimal.ZERO);
+        invoice.setTotalAmount(dto.getTotalAmount());
+        invoice.setNotes(dto.getNotes());
+        invoice.setPaymentTerms(dto.getPaymentTerms());
+        invoice.setPaidDate(dto.getPaidDate());
+        invoice.setPaymentMethod(dto.getPaymentMethod());
+        invoice.setStatus(dto.getStatus() != null ? Invoice.InvoiceStatus.valueOf(dto.getStatus()) : Invoice.InvoiceStatus.DRAFT);
         invoice.setProject(project);
         invoice.setClient(client);
         invoice.setUser(user);
@@ -69,15 +65,38 @@ public class InvoiceService {
         Invoice invoice = invoiceRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Invoice not found with id: " + id));
 
-        if (dto.amount != null) {
-            invoice.setSubtotal(BigDecimal.valueOf(dto.amount));
-            invoice.setTotalAmount(BigDecimal.valueOf(dto.amount));
+        if (dto.getInvoiceNumber() != null) {
+            invoice.setInvoiceNumber(dto.getInvoiceNumber());
         }
-        if (dto.dueDate != null) {
-            invoice.setDueDate(LocalDate.parse(dto.dueDate));
+        if (dto.getInvoiceDate() != null) {
+            invoice.setInvoiceDate(dto.getInvoiceDate());
         }
-        if (dto.description != null) {
-            invoice.setNotes(dto.description);
+        if (dto.getSubtotal() != null) {
+            invoice.setSubtotal(dto.getSubtotal());
+        }
+        if (dto.getTaxAmount() != null) {
+            invoice.setTaxAmount(dto.getTaxAmount());
+        }
+        if (dto.getTotalAmount() != null) {
+            invoice.setTotalAmount(dto.getTotalAmount());
+        }
+        if (dto.getDueDate() != null) {
+            invoice.setDueDate(dto.getDueDate());
+        }
+        if (dto.getNotes() != null) {
+            invoice.setNotes(dto.getNotes());
+        }
+        if (dto.getPaymentTerms() != null) {
+            invoice.setPaymentTerms(dto.getPaymentTerms());
+        }
+        if (dto.getPaidDate() != null) {
+            invoice.setPaidDate(dto.getPaidDate());
+        }
+        if (dto.getPaymentMethod() != null) {
+            invoice.setPaymentMethod(dto.getPaymentMethod());
+        }
+        if (dto.getStatus() != null) {
+            invoice.setStatus(Invoice.InvoiceStatus.valueOf(dto.getStatus()));
         }
 
         return invoiceRepository.save(invoice);

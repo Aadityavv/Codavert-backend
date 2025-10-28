@@ -2,6 +2,7 @@ package com.codavert.controller;
 
 import com.codavert.dto.JwtResponseDto;
 import com.codavert.dto.LoginRequestDto;
+import com.codavert.dto.UserUpdateDto;
 import com.codavert.dto.UserRegistrationDto;
 import com.codavert.entity.User;
 import com.codavert.service.AuthService;
@@ -268,14 +269,14 @@ public class AuthController {
         @Parameter(description = "JWT Authorization token", required = true)
         @RequestHeader("Authorization") String token,
         @Parameter(description = "Updated user data", required = true)
-        @Valid @RequestBody UserRegistrationDto updateRequest) {
+        @Valid @RequestBody UserUpdateDto updateRequest) {
         try {
             String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
             String username = authService.getUsernameFromToken(jwt);
             User user = authService.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
             
-            User updatedUser = authService.updateUser(user.getId(), updateRequest);
+            User updatedUser = authService.updateUserProfile(user.getId(), updateRequest);
             return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

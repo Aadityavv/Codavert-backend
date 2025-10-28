@@ -1,5 +1,6 @@
 package com.codavert.controller;
 
+import com.codavert.dto.InvoiceDto;
 import com.codavert.entity.Invoice;
 import com.codavert.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +30,12 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public ResponseEntity<Invoice> createInvoice(@RequestBody InvoiceService.InvoiceDto dto) {
+    public ResponseEntity<Invoice> createInvoice(@RequestBody InvoiceDto dto) {
         return ResponseEntity.ok(invoiceService.createInvoice(dto));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Invoice> updateInvoice(@PathVariable Long id, @RequestBody InvoiceService.InvoiceDto dto) {
+    public ResponseEntity<Invoice> updateInvoice(@PathVariable Long id, @RequestBody InvoiceDto dto) {
         return ResponseEntity.ok(invoiceService.updateInvoice(id, dto));
     }
 

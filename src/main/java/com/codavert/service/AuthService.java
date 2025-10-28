@@ -2,6 +2,7 @@ package com.codavert.service;
 
 import com.codavert.dto.JwtResponseDto;
 import com.codavert.dto.LoginRequestDto;
+import com.codavert.dto.UserUpdateDto;
 import com.codavert.dto.UserRegistrationDto;
 import com.codavert.entity.User;
 import com.codavert.repository.UserRepository;
@@ -102,6 +103,38 @@ public class AuthService {
     public User findById(Long id) {
         return userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+    }
+    
+    public User updateUserProfile(Long id, UserUpdateDto updateDto) {
+        User user = findById(id);
+        
+        // Update basic fields
+        if (updateDto.getUsername() != null && !updateDto.getUsername().isEmpty()) {
+            user.setUsername(updateDto.getUsername());
+        }
+        if (updateDto.getEmail() != null && !updateDto.getEmail().isEmpty()) {
+            user.setEmail(updateDto.getEmail());
+        }
+        if (updateDto.getPassword() != null && !updateDto.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(updateDto.getPassword()));
+        }
+        if (updateDto.getFirstName() != null && !updateDto.getFirstName().isEmpty()) {
+            user.setFirstName(updateDto.getFirstName());
+        }
+        if (updateDto.getLastName() != null && !updateDto.getLastName().isEmpty()) {
+            user.setLastName(updateDto.getLastName());
+        }
+        if (updateDto.getPhone() != null) {
+            user.setPhone(updateDto.getPhone());
+        }
+        if (updateDto.getBio() != null) {
+            user.setBio(updateDto.getBio());
+        }
+        if (updateDto.getProfileImageUrl() != null) {
+            user.setProfileImageUrl(updateDto.getProfileImageUrl());
+        }
+        
+        return userRepository.save(user);
     }
     
     public User updateUser(Long id, UserRegistrationDto updateDto) {

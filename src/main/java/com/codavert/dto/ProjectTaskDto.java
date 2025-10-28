@@ -4,6 +4,7 @@ import com.codavert.entity.ProjectTask.TaskPriority;
 import com.codavert.entity.ProjectTask.TaskStatus;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ProjectTaskDto {
     
@@ -17,6 +18,7 @@ public class ProjectTaskDto {
     private LocalDate dueDate;
     private Double estimatedHours;
     private Double actualHours;
+    private LocalDateTime completedAt;
     
     // Constructors
     public ProjectTaskDto() {}
@@ -100,6 +102,14 @@ public class ProjectTaskDto {
     
     public void setActualHours(Double actualHours) {
         this.actualHours = actualHours;
+    }
+    
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+    
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 }
 

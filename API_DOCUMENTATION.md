@@ -99,7 +99,12 @@ Authorization: Bearer <token>
 {
   "username": "updateduser",
   "email": "updated@example.com",
-  "password": "newpassword123"
+  "password": "newpassword123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phone": "+1234567890",
+  "bio": "Software developer with 5 years experience",
+  "profileImageUrl": "https://example.com/profile.jpg"
 }
 ```
 

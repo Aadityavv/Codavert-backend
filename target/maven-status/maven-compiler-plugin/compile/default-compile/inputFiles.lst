@@ -41,7 +41,9 @@ C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\reposit
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\repository\InvoiceRepository.java
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\service\ActivityLogService.java
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\config\SwaggerConfig.java
+C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\dto\InvoiceDto.java
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\dto\UserRegistrationDto.java
+C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\dto\UserUpdateDto.java
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\service\ClientService.java
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\controller\DocumentController.java
 C:\Users\HP\Desktop\Codavert\codavert-backend\src\main\java\com\codavert\controller\ProjectTaskController.java

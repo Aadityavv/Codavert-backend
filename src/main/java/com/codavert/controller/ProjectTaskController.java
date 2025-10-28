@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,7 @@ public class ProjectTaskController {
         task.setDueDate(taskDto.getDueDate());
         task.setEstimatedHours(taskDto.getEstimatedHours());
         task.setActualHours(taskDto.getActualHours());
+        task.setCompletedAt(taskDto.getCompletedAt());
         
         ProjectTask savedTask = taskRepository.save(task);
         
@@ -111,6 +113,7 @@ public class ProjectTaskController {
                     if (taskDto.getDueDate() != null) task.setDueDate(taskDto.getDueDate());
                     if (taskDto.getEstimatedHours() != null) task.setEstimatedHours(taskDto.getEstimatedHours());
                     if (taskDto.getActualHours() != null) task.setActualHours(taskDto.getActualHours());
+                    if (taskDto.getCompletedAt() != null) task.setCompletedAt(taskDto.getCompletedAt());
                     
                     ProjectTask updatedTask = taskRepository.save(task);
                     
