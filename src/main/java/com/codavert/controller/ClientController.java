@@ -1,5 +1,6 @@
 package com.codavert.controller;
 
+import com.codavert.dto.ClientDetailDto;
 import com.codavert.dto.ClientDto;
 import com.codavert.entity.Client;
 import com.codavert.service.ClientService;
@@ -89,6 +90,47 @@ public class ClientController {
         return clientService.getClientById(id)
             .map(client -> ResponseEntity.ok(client))
             .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @Operation(
+        summary = "Get Client Details",
+        description = "Retrieve comprehensive client details including projects, invoices, documents, and statistics.",
+        operationId = "getClientDetails",
+        security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Client details retrieved successfully",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = ClientDetailDto.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "404",
+            description = "Client not found"
+        ),
+        @ApiResponse(
+            responseCode = "403",
+            description = "Unauthorized - client does not belong to user"
+        )
+    })
+    @GetMapping("/{id}/details")
+    public ResponseEntity<?> getClientDetails(
+        @Parameter(description = "Client ID", required = true)
+        @PathVariable Long id,
+        @Parameter(description = "User ID to verify ownership", required = true)
+        @RequestParam Long userId) {
+        try {
+            ClientDetailDto details = clientService.getClientDetails(id, userId);
+            return ResponseEntity.ok(details);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("not found")) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
     
     @Operation(

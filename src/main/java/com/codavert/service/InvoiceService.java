@@ -116,13 +116,17 @@ public class InvoiceService {
         invoiceRepository.save(invoice);
     }
 
-    private String nextInvoiceNumber(Long userId) {
+    public String getNextInvoiceNumber(Long userId) {
         String max = invoiceRepository.findMaxInvoiceNumberByUserId(userId);
         int next = 1;
         if (max != null && max.matches("INV-\\d+")) {
             next = Integer.parseInt(max.substring(4)) + 1;
         }
         return String.format("INV-%04d", next);
+    }
+    
+    private String nextInvoiceNumber(Long userId) {
+        return getNextInvoiceNumber(userId);
     }
 }
 

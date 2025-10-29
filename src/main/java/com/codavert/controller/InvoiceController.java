@@ -50,6 +50,11 @@ public class InvoiceController {
         invoiceService.markSent(id);
         return ResponseEntity.ok("Invoice sent");
     }
+
+    @GetMapping("/next-number")
+    public ResponseEntity<String> getNextInvoiceNumber(@RequestParam Long userId) {
+        return ResponseEntity.ok(invoiceService.getNextInvoiceNumber(userId));
+    }
 }
 
 

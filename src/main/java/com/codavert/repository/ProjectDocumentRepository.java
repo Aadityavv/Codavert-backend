@@ -43,4 +43,12 @@ public interface ProjectDocumentRepository extends JpaRepository<ProjectDocument
     @Query("SELECT COUNT(pd) FROM ProjectDocument pd WHERE pd.project.id = :projectId AND pd.type = :type")
     Long countByProjectIdAndType(@Param("projectId") Long projectId, 
                                 @Param("type") ProjectDocument.DocumentType type);
+    
+    @Query("SELECT pd FROM ProjectDocument pd WHERE pd.project.client.id = :clientId AND pd.project.user.id = :userId")
+    List<ProjectDocument> findByClientIdAndUserId(@Param("clientId") Long clientId, 
+                                                  @Param("userId") Long userId);
+    
+    @Query("SELECT COUNT(pd) FROM ProjectDocument pd WHERE pd.project.client.id = :clientId AND pd.project.user.id = :userId")
+    Long countByClientIdAndUserId(@Param("clientId") Long clientId, 
+                                 @Param("userId") Long userId);
 }
