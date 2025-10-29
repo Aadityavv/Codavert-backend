@@ -33,22 +33,30 @@ public class EmailService {
     
     @Value("${spring.mail.password:}")
     private String mailPassword;
+
+	@Value("${spring.mail.host:smtp.gmail.com}")
+	private String mailHost;
     
     /**
      * Check if email is properly configured
      */
-    private boolean isEmailConfigured() {
-        boolean configured = fromEmail != null && !fromEmail.isEmpty() 
-                && recipientEmail != null && !recipientEmail.isEmpty()
-                && mailPassword != null && !mailPassword.isEmpty();
-        
-        if (!configured) {
-            logger.debug("Email is not configured. Contact form submissions will be saved to database only.");
-            logger.debug("To enable email notifications, set: MAIL_USERNAME, MAIL_PASSWORD, CONTACT_EMAIL");
-        }
-        
-        return configured;
-    }
+	private boolean isEmailConfigured() {
+		boolean hasFrom = fromEmail != null && !fromEmail.isEmpty();
+		boolean hasRecipient = recipientEmail != null && !recipientEmail.isEmpty();
+		boolean hasPassword = mailPassword != null && !mailPassword.isEmpty();
+		boolean configured = hasFrom && hasRecipient && hasPassword;
+
+		if (!configured) {
+			StringBuilder missing = new StringBuilder();
+			if (!hasFrom) missing.append("spring.mail.username ");
+			if (!hasRecipient) missing.append("contact.recipient.email ");
+			if (!hasPassword) missing.append("spring.mail.password ");
+			logger.warn("Email not configured. Missing: {}. Host={}, from={}, recipientSet={}, passwordSet={}",
+					missing.toString().trim(), mailHost, fromEmail, hasRecipient, hasPassword);
+		}
+
+		return configured;
+	}
     
     /**
      * Send contact form notification email asynchronously
@@ -56,40 +64,49 @@ public class EmailService {
      */
     @Async
     public void sendContactFormEmail(ContactFormDto contactForm) {
-        // Check if email is configured before attempting to send
-        if (!isEmailConfigured()) {
-            logger.debug("Email notification skipped (not configured) for: {}", contactForm.getEmail());
-            return;
-        }
-        
-        try {
-            logger.info("📧 Sending email notification for contact: {}", contactForm.getEmail());
-            
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            
-            helper.setFrom(fromEmail);
-            helper.setTo(recipientEmail);
-            helper.setSubject("🔔 New Contact Form Submission - Codavert");
-            
-            String htmlContent = buildHtmlEmail(contactForm);
-            helper.setText(htmlContent, true);
-            
-            logger.debug("Email message prepared, sending via SMTP...");
-            mailSender.send(message);
-            logger.info("✅ Email sent successfully to: {}", recipientEmail);
-            
-        } catch (MessagingException e) {
-            logger.debug("Failed to send email (MessagingException): {}", e.getMessage());
-            // Don't throw exception - this is async, just log it at debug level
-        } catch (MailException e) {
-            logger.debug("Failed to send email (MailException): {}", e.getMessage());
-            // Mail connection failures are expected when not configured
-        } catch (Exception e) {
-            logger.debug("Failed to send email: {}", e.getMessage());
-            // Don't clutter logs with expected failures
-        }
+		// Check if email is configured before attempting to send
+		if (!isEmailConfigured()) {
+			logger.warn("Skipping email notification (not configured) for submitter: {}", contactForm.getEmail());
+			return;
+		}
+
+		logger.info("Preparing contact email. host={}, from={}, to={}", mailHost, fromEmail, recipientEmail);
+		
+		try {
+			MimeMessage message = mailSender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+			helper.setFrom(fromEmail);
+			helper.setTo(recipientEmail);
+			helper.setSubject("🔔 New Contact Form Submission - Codavert");
+			// Make replies go to the submitter
+			if (contactForm.getEmail() != null && !contactForm.getEmail().isEmpty()) {
+				helper.setReplyTo(contactForm.getEmail());
+			}
+			String htmlContent = buildHtmlEmail(contactForm);
+			helper.setText(htmlContent, true);
+			logger.info("Sending contact email to {}", recipientEmail);
+			mailSender.send(message);
+			logger.info("✅ Contact email sent successfully to {}", recipientEmail);
+		} catch (MessagingException e) {
+			logger.error("Failed to construct MIME email: {}", e.getMessage(), e);
+			attemptSimpleFallback(contactForm);
+		} catch (MailException e) {
+			logger.error("SMTP send failed: {}", e.getMessage(), e);
+			attemptSimpleFallback(contactForm);
+		} catch (Exception e) {
+			logger.error("Unexpected failure while sending email: {}", e.getMessage(), e);
+			attemptSimpleFallback(contactForm);
+		}
     }
+
+	private void attemptSimpleFallback(ContactFormDto contactForm) {
+		try {
+			logger.warn("Attempting simple text email fallback to {}", recipientEmail);
+			sendSimpleContactFormEmail(contactForm);
+		} catch (Exception ex) {
+			logger.error("Fallback simple email failed: {}", ex.getMessage(), ex);
+		}
+	}
     
     /**
      * Build HTML email content
