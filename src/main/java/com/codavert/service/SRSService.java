@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -113,6 +114,10 @@ public class SRSService {
             next = Integer.parseInt(max.substring(4)) + 1;
         }
         return String.format("SRS-%04d", next);
+    }
+
+    public List<SRS> getSRSsByProjectId(Long projectId) {
+        return srsRepository.findByProjectId(projectId);
     }
 }
 

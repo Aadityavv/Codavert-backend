@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -129,6 +130,10 @@ public class MOUService {
             next = Integer.parseInt(max.substring(4)) + 1;
         }
         return String.format("MOU-%04d", next);
+    }
+
+    public List<MOU> getMOUsByProjectId(Long projectId) {
+        return mouRepository.findByProjectId(projectId);
     }
 }
 

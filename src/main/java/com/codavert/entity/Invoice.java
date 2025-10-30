@@ -49,10 +49,10 @@ public class Invoice {
     @Column(length = 20)
     private InvoiceStatus status = InvoiceStatus.DRAFT;
     
-    @Size(max = 1000)
+    @Column(columnDefinition = "TEXT")
     private String notes;
     
-    @Size(max = 500)
+    @Column(columnDefinition = "TEXT")
     private String paymentTerms;
     
     @Column(name = "paid_date")
@@ -60,6 +60,9 @@ public class Invoice {
     
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
+    
+    @Column(name = "amount_received", precision = 10, scale = 2)
+    private BigDecimal amountReceived;
     
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -189,6 +192,14 @@ public class Invoice {
     
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+    
+    public BigDecimal getAmountReceived() {
+        return amountReceived;
+    }
+    
+    public void setAmountReceived(BigDecimal amountReceived) {
+        this.amountReceived = amountReceived;
     }
     
     public LocalDateTime getCreatedAt() {

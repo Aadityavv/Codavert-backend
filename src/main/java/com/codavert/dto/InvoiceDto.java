@@ -48,6 +48,8 @@ public class InvoiceDto {
     @Size(max = 50)
     private String paymentMethod;
     
+    private BigDecimal amountReceived;
+    
     private String status;
     
     // Constructors
@@ -175,6 +177,14 @@ public class InvoiceDto {
     
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
+    }
+    
+    public BigDecimal getAmountReceived() {
+        return amountReceived;
+    }
+    
+    public void setAmountReceived(BigDecimal amountReceived) {
+        this.amountReceived = amountReceived;
     }
     
     public String getStatus() {

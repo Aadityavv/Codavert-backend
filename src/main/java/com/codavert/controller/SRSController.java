@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/srs")
@@ -48,6 +50,11 @@ public class SRSController {
     @GetMapping("/next-number")
     public ResponseEntity<String> getNextSrsNumber(@RequestParam Long userId) {
         return ResponseEntity.ok(srsService.getNextSrsNumber(userId));
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<SRS>> getSRSsByProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(srsService.getSRSsByProjectId(projectId));
     }
 }
 

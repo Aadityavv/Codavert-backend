@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -118,6 +119,10 @@ public class ProposalService {
             next = Integer.parseInt(max.substring(5)) + 1;
         }
         return String.format("PROP-%04d", next);
+    }
+
+    public List<Proposal> getProposalsByProjectId(Long projectId) {
+        return proposalRepository.findByProjectId(projectId);
     }
 }
 

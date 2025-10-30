@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/proposals")
@@ -48,6 +50,11 @@ public class ProposalController {
     @GetMapping("/next-number")
     public ResponseEntity<String> getNextProposalNumber(@RequestParam Long userId) {
         return ResponseEntity.ok(proposalService.getNextProposalNumber(userId));
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<Proposal>> getProposalsByProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(proposalService.getProposalsByProjectId(projectId));
     }
 }
 

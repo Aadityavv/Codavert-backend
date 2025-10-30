@@ -42,8 +42,7 @@ public class Proposal {
     @Column(name = "total_cost", precision = 10, scale = 2)
     private BigDecimal totalCost;
     
-    @Size(max = 500)
-    @Column(name = "payment_terms")
+    @Column(name = "payment_terms", columnDefinition = "TEXT")
     private String paymentTerms;
     
     @Column(name = "status", length = 20)

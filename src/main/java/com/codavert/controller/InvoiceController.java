@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/invoices")
@@ -54,6 +56,11 @@ public class InvoiceController {
     @GetMapping("/next-number")
     public ResponseEntity<String> getNextInvoiceNumber(@RequestParam Long userId) {
         return ResponseEntity.ok(invoiceService.getNextInvoiceNumber(userId));
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<Invoice>> getInvoicesByProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(invoiceService.getInvoicesByProjectId(projectId));
     }
 }
 

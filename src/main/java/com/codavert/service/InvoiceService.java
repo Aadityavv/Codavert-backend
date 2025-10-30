@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -53,6 +54,7 @@ public class InvoiceService {
         invoice.setPaymentTerms(dto.getPaymentTerms());
         invoice.setPaidDate(dto.getPaidDate());
         invoice.setPaymentMethod(dto.getPaymentMethod());
+        invoice.setAmountReceived(dto.getAmountReceived());
         invoice.setStatus(dto.getStatus() != null ? Invoice.InvoiceStatus.valueOf(dto.getStatus()) : Invoice.InvoiceStatus.DRAFT);
         invoice.setProject(project);
         invoice.setClient(client);
@@ -95,6 +97,9 @@ public class InvoiceService {
         if (dto.getPaymentMethod() != null) {
             invoice.setPaymentMethod(dto.getPaymentMethod());
         }
+        if (dto.getAmountReceived() != null) {
+            invoice.setAmountReceived(dto.getAmountReceived());
+        }
         if (dto.getStatus() != null) {
             invoice.setStatus(Invoice.InvoiceStatus.valueOf(dto.getStatus()));
         }
@@ -127,6 +132,10 @@ public class InvoiceService {
     
     private String nextInvoiceNumber(Long userId) {
         return getNextInvoiceNumber(userId);
+    }
+
+    public List<Invoice> getInvoicesByProjectId(Long projectId) {
+        return invoiceRepository.findByProjectId(projectId);
     }
 }
 

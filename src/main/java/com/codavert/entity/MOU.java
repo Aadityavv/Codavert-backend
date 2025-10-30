@@ -38,8 +38,7 @@ public class MOU {
     @Column(name = "project_title")
     private String projectTitle;
     
-    @Size(max = 1000)
-    @Column(name = "project_description")
+    @Column(name = "project_description", columnDefinition = "TEXT")
     private String projectDescription;
     
     @Size(max = 100)
