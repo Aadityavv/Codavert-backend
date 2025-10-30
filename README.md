@@ -21,16 +21,16 @@ A comprehensive Spring Boot REST API for managing freelancing projects, clients,
    ```
 
 3. **Access the API**:
-   - **Base URL**: `http://localhost:8081/api`
-   - **Swagger UI**: `http://localhost:8081/api/swagger-ui.html`
-   - **API Docs**: `http://localhost:8081/api/api-docs`
-   - **H2 Console**: `http://localhost:8081/api/h2-console`
+   - **Base URL**: `https://codavert.onrender.com/api`
+   - **Swagger UI**: `https://codavert.onrender.com/api/swagger-ui.html`
+   - **API Docs**: `https://codavert.onrender.com/api/api-docs`
+   - **H2 Console**: `https://codavert.onrender.com/api/h2-console`
 
 ## 📚 API Documentation
 
 ### Interactive Documentation
-- **Swagger UI**: `http://localhost:8081/api/swagger-ui.html`
-- **OpenAPI JSON**: `http://localhost:8081/api/api-docs`
+- **Swagger UI**: `https://codavert.onrender.com/api/swagger-ui.html`
+- **OpenAPI JSON**: `https://codavert.onrender.com/api/api-docs`
 
 ### Static Documentation
 - **Complete API Guide**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
@@ -43,7 +43,7 @@ A comprehensive Spring Boot REST API for managing freelancing projects, clients,
 
 ### Getting a Token
 ```bash
-curl -X POST http://localhost:8081/api/auth/signin \
+curl -X POST https://codavert.onrender.com/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "admin123"}'
 ```
@@ -60,7 +60,7 @@ The application uses H2 in-memory database for development:
 - **JDBC URL**: `jdbc:h2:mem:codavert_db`
 - **Username**: `sa`
 - **Password**: (empty)
-- **Console**: `http://localhost:8081/api/h2-console`
+- **Console**: `https://codavert.onrender.com/api/h2-console`
 
 ## 📋 Available Endpoints
 
@@ -163,19 +163,19 @@ springdoc.swagger-ui.path=/swagger-ui.html
 ## 🧪 Testing
 
 ### Using Swagger UI
-1. Navigate to `http://localhost:8081/api/swagger-ui.html`
+1. Navigate to `https://codavert.onrender.com/api/swagger-ui.html`
 2. Click "Authorize" and enter your JWT token
 3. Test endpoints directly from the interface
 
 ### Using cURL
 ```bash
 # Login
-curl -X POST http://localhost:8081/api/auth/signin \
+curl -X POST https://codavert.onrender.com/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "admin123"}'
 
 # Get clients (replace TOKEN with actual token)
-curl -X GET "http://localhost:8081/api/clients?userId=1" \
+curl -X GET "https://codavert.onrender.com/api/clients?userId=1" \
   -H "Authorization: Bearer TOKEN"
 ```
 

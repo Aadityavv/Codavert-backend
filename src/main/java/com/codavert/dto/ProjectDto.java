@@ -17,7 +17,7 @@ public class ProjectDto {
     @Size(max = 200)
     private String title;
     
-    @Size(max = 1000)
+    @Size(max = 10000)
     private String description;
     
     private String status;
@@ -35,13 +35,13 @@ public class ProjectDto {
     private BigDecimal budget;
     private BigDecimal hourlyRate;
     
-    @Size(max = 500)
+    @Size(max = 10000)
     private String requirements;
     
-    @Size(max = 500)
+    @Size(max = 10000)
     private String deliverables;
     
-    @Size(max = 200)
+    @Size(max = 3000)
     private String technologies;
     
     private Long clientId;

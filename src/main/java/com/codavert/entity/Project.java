@@ -29,7 +29,8 @@ public class Project {
     @Size(max = 200)
     private String title;
     
-    @Size(max = 1000)
+    @Size(max = 4000)
+    @Column(columnDefinition = "TEXT")
     private String description;
     
     @Enumerated(EnumType.STRING)
@@ -63,13 +64,15 @@ public class Project {
     @Column(name = "hourly_rate", precision = 10, scale = 2)
     private BigDecimal hourlyRate;
     
-    @Size(max = 500)
+    @Size(max = 4000)
+    @Column(columnDefinition = "TEXT")
     private String requirements;
     
-    @Size(max = 500)
+    @Size(max = 4000)
+    @Column(columnDefinition = "TEXT")
     private String deliverables;
     
-    @Size(max = 200)
+    @Size(max = 1000)
     private String technologies;
     
     @CreatedDate
