@@ -54,7 +54,7 @@ public class InvoiceService {
         invoice.setPaymentTerms(dto.getPaymentTerms());
         invoice.setPaidDate(dto.getPaidDate());
         invoice.setPaymentMethod(dto.getPaymentMethod());
-        invoice.setAmountReceived(dto.getAmountReceived());
+        invoice.setAmountReceived(dto.getAmountReceived() != null ? dto.getAmountReceived() : BigDecimal.ZERO);
         invoice.setStatus(dto.getStatus() != null ? Invoice.InvoiceStatus.valueOf(dto.getStatus()) : Invoice.InvoiceStatus.DRAFT);
         invoice.setProject(project);
         invoice.setClient(client);
