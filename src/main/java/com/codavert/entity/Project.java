@@ -41,6 +41,10 @@ public class Project {
     @Column(length = 20)
     private ProjectType type;
     
+    @Size(max = 255)
+    @Column(name = "types")
+    private String types; // Comma-separated list of project types
+    
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private Priority priority = Priority.MEDIUM;
@@ -150,6 +154,14 @@ public class Project {
     
     public void setType(ProjectType type) {
         this.type = type;
+    }
+    
+    public String getTypes() {
+        return types;
+    }
+    
+    public void setTypes(String types) {
+        this.types = types;
     }
     
     public Priority getPriority() {

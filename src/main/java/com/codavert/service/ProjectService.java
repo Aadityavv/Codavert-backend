@@ -57,6 +57,9 @@ public class ProjectService {
         if (projectDto.getType() != null) {
             project.setType(Project.ProjectType.valueOf(projectDto.getType()));
         }
+        if (projectDto.getTypes() != null) {
+            project.setTypes(projectDto.getTypes());
+        }
         if (projectDto.getPriority() != null) {
             project.setPriority(Project.Priority.valueOf(projectDto.getPriority()));
         }
@@ -98,6 +101,9 @@ public class ProjectService {
         }
         if (projectDto.getType() != null) {
             project.setType(Project.ProjectType.valueOf(projectDto.getType()));
+        }
+        if (projectDto.getTypes() != null) {
+            project.setTypes(projectDto.getTypes());
         }
         if (projectDto.getPriority() != null) {
             project.setPriority(Project.Priority.valueOf(projectDto.getPriority()));

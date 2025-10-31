@@ -22,6 +22,7 @@ public class ProjectDto {
     
     private String status;
     private String type;
+    private String types; // Comma-separated list of project types
     private String priority;
     
     @NotNull
@@ -104,6 +105,14 @@ public class ProjectDto {
     
     public void setType(String type) {
         this.type = type;
+    }
+    
+    public String getTypes() {
+        return types;
+    }
+    
+    public void setTypes(String types) {
+        this.types = types;
     }
     
     public String getPriority() {
