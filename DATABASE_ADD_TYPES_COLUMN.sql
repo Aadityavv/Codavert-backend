@@ -7,3 +7,4 @@ FROM information_schema.columns
 WHERE table_name = 'projects' 
 AND column_name = 'types';
 
+

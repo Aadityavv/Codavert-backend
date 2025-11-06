@@ -41,3 +41,4 @@ After running the migration:
 - Existing projects will have `NULL` for the `types` column
 - The migration uses `ADD COLUMN IF NOT EXISTS` to prevent errors if the column already exists
 
+

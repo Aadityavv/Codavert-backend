@@ -59,6 +59,35 @@ public class EmailService {
 	}
     
     /**
+     * Generic method to send a simple email
+     */
+    @Async
+    public void sendEmail(String to, String subject, String body) {
+        // Check if email is configured before attempting to send
+        if (!isEmailConfigured()) {
+            logger.warn("Skipping email notification (not configured) for recipient: {}", to);
+            return;
+        }
+        
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(body);
+            
+            logger.info("Sending email to {}", to);
+            mailSender.send(message);
+            logger.info("✅ Email sent successfully to {}", to);
+            
+        } catch (MailException e) {
+            logger.error("Failed to send email to {}: {}", to, e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected failure while sending email to {}: {}", to, e.getMessage(), e);
+        }
+    }
+    
+    /**
      * Send contact form notification email asynchronously
      * This runs in a separate thread so it doesn't block the HTTP response
      */
