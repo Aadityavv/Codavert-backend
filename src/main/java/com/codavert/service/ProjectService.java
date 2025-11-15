@@ -6,6 +6,7 @@ import com.codavert.entity.Project;
 import com.codavert.entity.User;
 import com.codavert.repository.ClientRepository;
 import com.codavert.repository.ProjectRepository;
+import com.codavert.repository.ProjectTaskRepository;
 import com.codavert.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,6 +28,9 @@ public class ProjectService {
     
     @Autowired
     private ClientRepository clientRepository;
+    
+    @Autowired
+    private ProjectTaskRepository projectTaskRepository;
     
     public Project createProject(ProjectDto projectDto, Long userId) {
         User user = userRepository.findById(userId)
@@ -147,5 +151,14 @@ public class ProjectService {
     public Double getTotalBudgetByUserIdAndStatus(Long userId, String status) {
         Double total = projectRepository.sumBudgetByUserIdAndStatus(userId, Project.ProjectStatus.valueOf(status));
         return total != null ? total : 0.0;
+    }
+    
+    // Get projects where employee has tasks assigned
+    public Page<Project> getProjectsByAssignedEmployee(Long employeeId, Pageable pageable) {
+        return projectTaskRepository.findProjectsByAssignedUserId(employeeId, pageable);
+    }
+    
+    public List<Project> getProjectsByAssignedEmployee(Long employeeId) {
+        return projectTaskRepository.findProjectsByAssignedUserId(employeeId);
     }
 }

@@ -134,4 +134,12 @@ public class ProjectController {
         Double total = projectService.getTotalBudgetByUserIdAndStatus(userId, status);
         return ResponseEntity.ok(total);
     }
+    
+    @GetMapping("/employee/{employeeId}")
+    public ResponseEntity<Page<Project>> getProjectsByAssignedEmployee(
+            @PathVariable Long employeeId,
+            Pageable pageable) {
+        Page<Project> projects = projectService.getProjectsByAssignedEmployee(employeeId, pageable);
+        return ResponseEntity.ok(projects);
+    }
 }

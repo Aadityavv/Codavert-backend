@@ -29,6 +29,13 @@ public interface ProjectTaskRepository extends JpaRepository<ProjectTask, Long> 
     // Find tasks by project and assigned user
     List<ProjectTask> findByProject_IdAndAssignedToUserId(Long projectId, Long userId);
     
+    // Find distinct projects where user has tasks assigned
+    @Query("SELECT DISTINCT t.project FROM ProjectTask t WHERE t.assignedToUserId = :userId")
+    List<com.codavert.entity.Project> findProjectsByAssignedUserId(@Param("userId") Long userId);
+    
+    @Query("SELECT DISTINCT t.project FROM ProjectTask t WHERE t.assignedToUserId = :userId")
+    Page<com.codavert.entity.Project> findProjectsByAssignedUserId(@Param("userId") Long userId, Pageable pageable);
+    
     // Count tasks by project
     long countByProject_Id(Long projectId);
     

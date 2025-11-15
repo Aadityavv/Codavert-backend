@@ -1,12 +1,15 @@
 package com.codavert.controller;
 
 import com.codavert.dto.ProjectTaskDto;
+import com.codavert.dto.BulkTaskAssignmentDto;
 import com.codavert.entity.Project;
 import com.codavert.entity.ProjectTask;
 import com.codavert.entity.ProjectTask.TaskStatus;
 import com.codavert.repository.ProjectRepository;
 import com.codavert.repository.ProjectTaskRepository;
+import com.codavert.repository.UserRepository;
 import com.codavert.service.ActivityLogService;
+import java.util.ArrayList;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,9 @@ public class ProjectTaskController {
     
     @Autowired
     private ActivityLogService activityLogService;
+    
+    @Autowired
+    private UserRepository userRepository;
     
     @GetMapping("/project/{projectId}")
     @Operation(summary = "Get all tasks for a project")
@@ -236,6 +242,67 @@ public class ProjectTaskController {
                     return ResponseEntity.ok(updatedTask);
                 })
                 .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @PostMapping("/bulk-assign")
+    @Operation(summary = "Assign a task to multiple users")
+    public ResponseEntity<Map<String, Object>> bulkAssignTask(
+            @Valid @RequestBody BulkTaskAssignmentDto assignmentDto,
+            @RequestParam(required = false) Long adminUserId) {
+        
+        // Find the project
+        Project project = projectRepository.findById(assignmentDto.getProjectId())
+                .orElseThrow(() -> new RuntimeException("Project not found with id: " + assignmentDto.getProjectId()));
+        
+        // Validate users exist
+        List<Long> validUserIds = new ArrayList<>();
+        for (Long userId : assignmentDto.getUserIds()) {
+            if (userRepository.existsById(userId)) {
+                validUserIds.add(userId);
+            }
+        }
+        
+        if (validUserIds.isEmpty()) {
+            throw new RuntimeException("No valid users found for assignment");
+        }
+        
+        // Create tasks for each user
+        List<ProjectTask> createdTasks = new ArrayList<>();
+        String fullDescription = assignmentDto.getDescription();
+        if (assignmentDto.getMessage() != null && !assignmentDto.getMessage().trim().isEmpty()) {
+            fullDescription = (fullDescription != null ? fullDescription + "\n\n" : "") + 
+                            "Message: " + assignmentDto.getMessage();
+        }
+        
+        for (Long userId : validUserIds) {
+            ProjectTask task = new ProjectTask();
+            task.setProject(project);
+            task.setTitle(assignmentDto.getTitle());
+            task.setDescription(fullDescription);
+            task.setStatus(TaskStatus.TODO);
+            task.setPriority(assignmentDto.getPriority() != null ? assignmentDto.getPriority() : 
+                           ProjectTask.TaskPriority.MEDIUM);
+            task.setAssignedToUserId(userId);
+            task.setStartDate(assignmentDto.getStartDate());
+            task.setDueDate(assignmentDto.getDueDate());
+            task.setEstimatedHours(assignmentDto.getEstimatedHours());
+            
+            ProjectTask savedTask = taskRepository.save(task);
+            createdTasks.add(savedTask);
+            
+            // Log activity
+            if (adminUserId != null) {
+                activityLogService.logTaskCreated(adminUserId, savedTask.getId(), savedTask.getTitle());
+            }
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Task assigned to " + createdTasks.size() + " user(s)");
+        response.put("tasks", createdTasks);
+        response.put("assignedToCount", createdTasks.size());
+        
+        return ResponseEntity.ok(response);
     }
 }
 
