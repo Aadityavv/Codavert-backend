@@ -20,12 +20,14 @@ com\codavert\entity\ProjectTask$TaskStatus.class
 com\codavert\service\SRSService.class
 com\codavert\entity\ActivityLog$ActivityType.class
 com\codavert\entity\Project$ProjectStatus.class
+com\codavert\controller\JobPostingController.class
 com\codavert\entity\ProjectTask.class
 com\codavert\entity\Invoice$InvoiceStatus.class
 com\codavert\entity\ActivityLog.class
 com\codavert\repository\ContactSubmissionRepository.class
 com\codavert\repository\ProjectTaskRepository.class
 com\codavert\config\SwaggerConfig.class
+com\codavert\entity\JobPosting$PostingStatus.class
 com\codavert\security\UserPrincipal.class
 com\codavert\entity\ProjectDocument$DocumentStatus.class
 com\codavert\repository\ActivityLogRepository.class
@@ -41,6 +43,7 @@ com\codavert\controller\ProjectController.class
 com\codavert\entity\ContactSubmission.class
 com\codavert\controller\ActivityLogController.class
 com\codavert\dto\JobApplicationDto.class
+com\codavert\dto\JobPostingDto.class
 com\codavert\dto\JwtResponseDto.class
 com\codavert\security\WebSecurityConfig.class
 com\codavert\entity\Proposal.class
@@ -62,6 +65,7 @@ com\codavert\service\EmailService.class
 com\codavert\service\ProposalService.class
 com\codavert\dto\LoginRequestDto.class
 com\codavert\entity\SRS.class
+com\codavert\entity\JobPosting$JobType.class
 com\codavert\dto\ClientDto.class
 com\codavert\config\JpaConfig.class
 com\codavert\entity\ProjectDocument.class
@@ -76,11 +80,13 @@ com\codavert\service\MOUService.class
 com\codavert\dto\UserUpdateDto.class
 com\codavert\entity\JobApplication.class
 com\codavert\controller\AuthController.class
+com\codavert\repository\JobPostingRepository.class
 com\codavert\repository\JobApplicationRepository.class
 com\codavert\entity\MOU.class
 com\codavert\dto\ContactFormDto.class
 com\codavert\service\InvoiceService.class
 com\codavert\dto\InvoiceDto.class
+com\codavert\entity\JobPosting.class
 com\codavert\controller\MOUController.class
 com\codavert\repository\TimeEntryRepository.class
 com\codavert\service\ProjectService.class
@@ -89,6 +95,7 @@ com\codavert\entity\Project$ProjectType.class
 com\codavert\repository\SRSRepository.class
 com\codavert\dto\ActivityLogDto.class
 com\codavert\controller\InvoiceController.class
+com\codavert\service\JobPostingService.class
 com\codavert\controller\ClientController.class
 com\codavert\entity\Project.class
 com\codavert\controller\TimeEntryController.class
