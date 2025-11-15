@@ -42,3 +42,7 @@ After running the migration:
 - The migration uses `ADD COLUMN IF NOT EXISTS` to prevent errors if the column already exists
 
 
+
+
+
+

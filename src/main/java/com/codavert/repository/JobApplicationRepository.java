@@ -21,3 +21,7 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     List<JobApplication> findByStatusOrderByAppliedAtDesc(JobApplication.ApplicationStatus status);
 }
 
+
+
+
+
