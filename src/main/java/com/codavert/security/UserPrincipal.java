@@ -16,14 +16,16 @@ public class UserPrincipal implements UserDetails {
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
+    private boolean enabled;
     
     public UserPrincipal(Long id, String username, String email, String password, 
-                        Collection<? extends GrantedAuthority> authorities) {
+                        Collection<? extends GrantedAuthority> authorities, boolean enabled) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
+        this.enabled = enabled;
     }
     
     public static UserPrincipal create(User user) {
@@ -31,12 +33,16 @@ public class UserPrincipal implements UserDetails {
             new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
         );
         
+        // User is enabled only if status is ACTIVE
+        boolean enabled = user.getStatus() == User.UserStatus.ACTIVE;
+        
         return new UserPrincipal(
             user.getId(),
             user.getUsername(),
             user.getEmail(),
             user.getPassword(),
-            authorities
+            authorities,
+            enabled
         );
     }
     
@@ -80,7 +86,7 @@ public class UserPrincipal implements UserDetails {
     
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
     
     @Override
