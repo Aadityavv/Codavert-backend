@@ -60,6 +60,8 @@ public class JobApplication {
     private String employmentType; // Full-time, Part-time, Internship, Contract
     private String department;
     private String workLocation; // Remote, Office, Hybrid
+    private Boolean offerAccepted = false; // Whether the offer has been accepted
+    private Long staffUserId; // Reference to created staff user account
     
     @Column(nullable = false)
     private LocalDateTime appliedAt = LocalDateTime.now();
@@ -85,6 +87,7 @@ public class JobApplication {
         SHORTLISTED,   // Shortlisted for interview
         INTERVIEWED,   // Interview completed
         HIRED,         // Accepted and hired
+        OFFER_ACCEPTED, // Offer accepted by candidate
         REJECTED,      // Application rejected
         WITHDRAWN      // Applicant withdrew
     }

@@ -2,8 +2,11 @@ package com.codavert.service;
 
 import com.codavert.dto.JobApplicationDto;
 import com.codavert.entity.JobApplication;
+import com.codavert.entity.User;
 import com.codavert.repository.JobApplicationRepository;
+import com.codavert.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,12 @@ public class JobApplicationService {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     // Create new job application (public endpoint)
     @Transactional
@@ -146,6 +155,57 @@ public class JobApplicationService {
     public void deleteApplication(Long id) {
         JobApplication application = getApplicationById(id);
         jobApplicationRepository.delete(application);
+    }
+    
+    // Accept offer and create employee account
+    @Transactional
+    public User acceptOfferAndCreateStaffAccount(Long applicationId) {
+        JobApplication application = getApplicationById(applicationId);
+        
+        // Check if already accepted
+        if (application.getOfferAccepted() != null && application.getOfferAccepted()) {
+            throw new RuntimeException("Offer has already been accepted for this application");
+        }
+        
+        // Check if already hired
+        if (application.getStatus() != JobApplication.ApplicationStatus.HIRED) {
+            throw new RuntimeException("Application must be in HIRED status to accept offer");
+        }
+        
+        // Check if user already exists
+        if (userRepository.existsByEmail(application.getEmail())) {
+            throw new RuntimeException("A user account with this email already exists");
+        }
+        
+        // Create employee user account
+        User employeeUser = new User();
+        employeeUser.setUsername(application.getEmail()); // Use email as username
+        employeeUser.setEmail(application.getEmail());
+        employeeUser.setPassword(passwordEncoder.encode("1234")); // Default password
+        employeeUser.setFirstName(application.getFullName().split(" ")[0]);
+        employeeUser.setLastName(application.getFullName().split(" ").length > 1 
+            ? application.getFullName().substring(application.getFullName().indexOf(" ") + 1) 
+            : "");
+        employeeUser.setPhone(application.getPhone());
+        employeeUser.setRole(User.Role.STAFF);
+        employeeUser.setStatus(User.UserStatus.ACTIVE);
+        
+        User savedUser = userRepository.save(employeeUser);
+        
+        // Update application
+        application.setOfferAccepted(true);
+        application.setStatus(JobApplication.ApplicationStatus.OFFER_ACCEPTED);
+        application.setStaffUserId(savedUser.getId());
+        jobApplicationRepository.save(application);
+        
+        // Send account creation email
+        try {
+            emailService.sendEmployeeAccountCreationEmail(savedUser, application);
+        } catch (Exception e) {
+            System.err.println("Failed to send account creation email: " + e.getMessage());
+        }
+        
+        return savedUser;
     }
     
     // Send application confirmation email

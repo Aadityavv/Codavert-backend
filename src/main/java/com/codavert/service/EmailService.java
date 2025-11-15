@@ -9,6 +9,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.core.io.ByteArrayResource;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -288,6 +289,304 @@ public class EmailService {
         sb.append("Submitted on: ").append(now.format(formatter)).append("\n");
         
         return sb.toString();
+    }
+    
+    /**
+     * Send offer letter email to candidate
+     */
+    @Async
+    public void sendOfferLetterEmail(String candidateEmail, String candidateName, String position, 
+                                     String offerDetails, String pdfBase64) {
+        if (!isEmailConfigured()) {
+            logger.warn("Skipping offer letter email (not configured) for: {}", candidateEmail);
+            return;
+        }
+        
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(candidateEmail);
+            helper.setSubject("🎉 Congratulations! Job Offer from Codavert - " + position);
+            
+            String htmlContent = buildOfferLetterEmail(candidateName, position, offerDetails);
+            helper.setText(htmlContent, true);
+            
+            // Attach PDF if provided
+            if (pdfBase64 != null && !pdfBase64.isEmpty()) {
+                byte[] pdfBytes = java.util.Base64.getDecoder().decode(pdfBase64);
+                helper.addAttachment("Offer_Letter.pdf", new ByteArrayResource(pdfBytes), "application/pdf");
+            }
+            
+            logger.info("Sending offer letter email to {}", candidateEmail);
+            mailSender.send(message);
+            logger.info("✅ Offer letter email sent successfully to {}", candidateEmail);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send offer letter email to {}: {}", candidateEmail, e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Send interview invitation email with Google Meet link
+     */
+    @Async
+    public void sendInterviewInvitationEmail(String candidateEmail, String candidateName, String position,
+                                             String interviewDate, String interviewTime, String meetLink, 
+                                             String notes) {
+        if (!isEmailConfigured()) {
+            logger.warn("Skipping interview invitation email (not configured) for: {}", candidateEmail);
+            return;
+        }
+        
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(candidateEmail);
+            helper.setSubject("📅 Interview Invitation - " + position + " at Codavert");
+            
+            String htmlContent = buildInterviewInvitationEmail(candidateName, position, interviewDate, 
+                                                              interviewTime, meetLink, notes);
+            helper.setText(htmlContent, true);
+            
+            logger.info("Sending interview invitation email to {}", candidateEmail);
+            mailSender.send(message);
+            logger.info("✅ Interview invitation email sent successfully to {}", candidateEmail);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send interview invitation email to {}: {}", candidateEmail, e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Build HTML email for offer letter
+     */
+    private String buildOfferLetterEmail(String candidateName, String position, String offerDetails) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>");
+        html.append("<html>");
+        html.append("<head>");
+        html.append("<style>");
+        html.append("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; ");
+        html.append("line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 20px; }");
+        html.append(".container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; ");
+        html.append("overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }");
+        html.append(".header { background: linear-gradient(135deg, #8b45ff 0%, #00d4ff 100%); ");
+        html.append("color: white; padding: 30px; text-align: center; }");
+        html.append(".content { padding: 30px; }");
+        html.append(".button { display: inline-block; background: linear-gradient(135deg, #8b45ff 0%, #00d4ff 100%); ");
+        html.append("color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; ");
+        html.append("font-weight: 600; margin: 20px 0; }");
+        html.append(".footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; ");
+        html.append("color: #666; }");
+        html.append("</style>");
+        html.append("</head>");
+        html.append("<body>");
+        html.append("<div class=\"container\">");
+        html.append("<div class=\"header\">");
+        html.append("<h1 style=\"margin: 0; font-size: 24px;\">🎉 Congratulations!</h1>");
+        html.append("</div>");
+        html.append("<div class=\"content\">");
+        html.append("<p>Dear ").append(escapeHtml(candidateName)).append(",</p>");
+        html.append("<p>We are pleased to offer you the position of <strong>").append(escapeHtml(position));
+        html.append("</strong> at Codavert!</p>");
+        html.append("<p>Please find the detailed offer letter attached to this email.</p>");
+        if (offerDetails != null && !offerDetails.isEmpty()) {
+            html.append("<div style=\"background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;\">");
+            html.append(escapeHtml(offerDetails));
+            html.append("</div>");
+        }
+        html.append("<p>We look forward to welcoming you to our team!</p>");
+        html.append("<p>Best regards,<br><strong>Codavert Team</strong></p>");
+        html.append("</div>");
+        html.append("<div class=\"footer\">");
+        html.append("<p>This is an automated email from Codavert.</p>");
+        html.append("</div>");
+        html.append("</div>");
+        html.append("</body>");
+        html.append("</html>");
+        return html.toString();
+    }
+    
+    /**
+     * Build HTML email for interview invitation
+     */
+    private String buildInterviewInvitationEmail(String candidateName, String position, String interviewDate,
+                                                 String interviewTime, String meetLink, String notes) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>");
+        html.append("<html>");
+        html.append("<head>");
+        html.append("<style>");
+        html.append("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; ");
+        html.append("line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 20px; }");
+        html.append(".container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; ");
+        html.append("overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }");
+        html.append(".header { background: linear-gradient(135deg, #8b45ff 0%, #00d4ff 100%); ");
+        html.append("color: white; padding: 30px; text-align: center; }");
+        html.append(".content { padding: 30px; }");
+        html.append(".meet-button { display: inline-block; background: #00832d; color: white; ");
+        html.append("padding: 12px 24px; text-decoration: none; border-radius: 6px; ");
+        html.append("font-weight: 600; margin: 20px 0; }");
+        html.append(".info-box { background: #f0f9ff; border-left: 4px solid #0ea5e9; ");
+        html.append("padding: 15px; margin: 20px 0; border-radius: 4px; }");
+        html.append(".footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; ");
+        html.append("color: #666; }");
+        html.append("</style>");
+        html.append("</head>");
+        html.append("<body>");
+        html.append("<div class=\"container\">");
+        html.append("<div class=\"header\">");
+        html.append("<h1 style=\"margin: 0; font-size: 24px;\">📅 Interview Invitation</h1>");
+        html.append("</div>");
+        html.append("<div class=\"content\">");
+        html.append("<p>Dear ").append(escapeHtml(candidateName)).append(",</p>");
+        html.append("<p>Thank you for your interest in the <strong>").append(escapeHtml(position));
+        html.append("</strong> position at Codavert.</p>");
+        html.append("<p>We would like to invite you for an interview. Please find the details below:</p>");
+        html.append("<div class=\"info-box\">");
+        html.append("<p style=\"margin: 5px 0;\"><strong>📅 Date:</strong> ").append(escapeHtml(interviewDate)).append("</p>");
+        html.append("<p style=\"margin: 5px 0;\"><strong>⏰ Time:</strong> ").append(escapeHtml(interviewTime)).append("</p>");
+        html.append("<p style=\"margin: 5px 0;\"><strong>📍 Location:</strong> Google Meet (Online)</p>");
+        html.append("</div>");
+        if (meetLink != null && !meetLink.isEmpty()) {
+            html.append("<p style=\"text-align: center;\">");
+            html.append("<a href=\"").append(escapeHtml(meetLink)).append("\" class=\"meet-button\">");
+            html.append("🔗 Join Google Meet</a>");
+            html.append("</p>");
+            html.append("<p style=\"text-align: center; font-size: 12px; color: #666;\">");
+            html.append("Or copy this link: <br><code style=\"background: #f1f5f9; padding: 4px 8px; ");
+            html.append("border-radius: 4px; word-break: break-all;\">").append(escapeHtml(meetLink));
+            html.append("</code></p>");
+        }
+        if (notes != null && !notes.isEmpty()) {
+            html.append("<div style=\"background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;\">");
+            html.append("<strong>Additional Notes:</strong><br>");
+            html.append("<p style=\"white-space: pre-wrap;\">").append(escapeHtml(notes)).append("</p>");
+            html.append("</div>");
+        }
+        html.append("<p>We look forward to speaking with you!</p>");
+        html.append("<p>Best regards,<br><strong>Codavert Team</strong></p>");
+        html.append("</div>");
+        html.append("<div class=\"footer\">");
+        html.append("<p>This is an automated email from Codavert.</p>");
+        html.append("</div>");
+        html.append("</div>");
+        html.append("</body>");
+        html.append("</html>");
+        return html.toString();
+    }
+    
+    /**
+     * Send employee account creation email
+     */
+    @Async
+    public void sendEmployeeAccountCreationEmail(com.codavert.entity.User employeeUser, com.codavert.entity.JobApplication application) {
+        if (!isEmailConfigured()) {
+            logger.warn("Skipping employee account creation email (not configured) for: {}", employeeUser.getEmail());
+            return;
+        }
+        
+        try {
+            String subject = "Welcome to Codavert - Your Employee Account Has Been Created";
+            String htmlContent = buildEmployeeAccountCreationEmail(employeeUser, application);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(employeeUser.getEmail());
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(message);
+            logger.info("✅ Employee account creation email sent successfully to {}", employeeUser.getEmail());
+            
+        } catch (MessagingException e) {
+            logger.error("Failed to send employee account creation email to {}: {}", employeeUser.getEmail(), e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected failure while sending employee account creation email to {}: {}", employeeUser.getEmail(), e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Build HTML email for employee account creation
+     */
+    private String buildEmployeeAccountCreationEmail(com.codavert.entity.User employeeUser, com.codavert.entity.JobApplication application) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>");
+        html.append("<html>");
+        html.append("<head>");
+        html.append("<meta charset=\"UTF-8\">");
+        html.append("<style>");
+        html.append("body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }");
+        html.append(".container { max-width: 600px; margin: 0 auto; padding: 20px; }");
+        html.append(".header { background: linear-gradient(135deg, #8b45ff 0%, #00d4ff 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }");
+        html.append(".content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }");
+        html.append(".info-box { background: white; padding: 20px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #8b45ff; }");
+        html.append(".credentials { background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #ffc107; }");
+        html.append(".credentials strong { color: #856404; }");
+        html.append(".button { display: inline-block; background: #8b45ff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }");
+        html.append(".footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }");
+        html.append("</style>");
+        html.append("</head>");
+        html.append("<body>");
+        html.append("<div class=\"container\">");
+        html.append("<div class=\"header\">");
+        html.append("<h1>Welcome to Codavert!</h1>");
+        html.append("<p>Your Employee Account Has Been Created</p>");
+        html.append("</div>");
+        html.append("<div class=\"content\">");
+        html.append("<p>Dear ").append(escapeHtml(employeeUser.getFirstName())).append(",</p>");
+        html.append("<p>Congratulations! We are thrilled to welcome you to the Codavert team.</p>");
+        html.append("<p>Your employee account has been successfully created. Below are your login credentials:</p>");
+        
+        html.append("<div class=\"credentials\">");
+        html.append("<h3 style=\"margin-top: 0; color: #856404;\">🔐 Your Login Credentials</h3>");
+        html.append("<p><strong>Username:</strong> ").append(escapeHtml(employeeUser.getEmail())).append("</p>");
+        html.append("<p><strong>Password:</strong> 1234</p>");
+        html.append("<p style=\"color: #856404; font-size: 14px;\"><em>⚠️ Please change your password after your first login for security purposes.</em></p>");
+        html.append("</div>");
+        
+        html.append("<div class=\"info-box\">");
+        html.append("<h3 style=\"margin-top: 0;\">📋 Your Details</h3>");
+        html.append("<p><strong>Position:</strong> ").append(escapeHtml(application.getAssignedRole() != null ? application.getAssignedRole() : application.getPosition())).append("</p>");
+        if (application.getDepartment() != null) {
+            html.append("<p><strong>Department:</strong> ").append(escapeHtml(application.getDepartment())).append("</p>");
+        }
+        if (application.getJoiningDate() != null) {
+            html.append("<p><strong>Joining Date:</strong> ").append(escapeHtml(application.getJoiningDate())).append("</p>");
+        }
+        if (application.getWorkLocation() != null) {
+            html.append("<p><strong>Work Location:</strong> ").append(escapeHtml(application.getWorkLocation())).append("</p>");
+        }
+        html.append("</div>");
+        
+        html.append("<p>You can now access the employee portal to:</p>");
+        html.append("<ul>");
+        html.append("<li>View tasks assigned to you</li>");
+        html.append("<li>Track your work progress</li>");
+        html.append("<li>Update your profile</li>");
+        html.append("<li>Access important company resources</li>");
+        html.append("</ul>");
+        
+        html.append("<p style=\"text-align: center;\">");
+        html.append("<a href=\"#\" class=\"button\">Access Employee Portal</a>");
+        html.append("</p>");
+        
+        html.append("<p>If you have any questions or need assistance, please don't hesitate to contact us.</p>");
+        html.append("<p>Once again, welcome to the team!</p>");
+        html.append("<p>Best regards,<br><strong>Codavert Team</strong></p>");
+        html.append("</div>");
+        html.append("<div class=\"footer\">");
+        html.append("<p>This is an automated email from Codavert.</p>");
+        html.append("<p>Please do not reply to this email.</p>");
+        html.append("</div>");
+        html.append("</div>");
+        html.append("</body>");
+        html.append("</html>");
+        return html.toString();
     }
 }
 

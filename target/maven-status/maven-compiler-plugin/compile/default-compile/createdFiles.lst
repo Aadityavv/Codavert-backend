@@ -4,6 +4,7 @@ com\codavert\controller\JobApplicationController.class
 com\codavert\controller\ProjectTaskController.class
 com\codavert\entity\Proposal$ProposalStatus.class
 com\codavert\entity\Invoice.class
+com\codavert\controller\UserController.class
 com\codavert\entity\Project$Priority.class
 com\codavert\service\AuthService.class
 com\codavert\controller\ContactController.class

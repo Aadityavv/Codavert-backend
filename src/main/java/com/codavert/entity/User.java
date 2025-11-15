@@ -215,7 +215,7 @@ public class User {
     
     // Enums
     public enum Role {
-        ADMIN, USER, CLIENT
+        ADMIN, USER, CLIENT, STAFF
     }
     
     public enum UserStatus {
