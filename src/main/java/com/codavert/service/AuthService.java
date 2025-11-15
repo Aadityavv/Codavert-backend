@@ -59,6 +59,25 @@ public class AuthService {
     
     public JwtResponseDto authenticateUser(LoginRequestDto loginRequest) {
         try {
+            // First check if user exists and is active before attempting authentication
+            User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElse(null);
+            
+            // Also try to find by email if not found by username
+            if (user == null) {
+                user = userRepository.findByEmail(loginRequest.getUsername())
+                    .orElse(null);
+            }
+            
+            if (user == null) {
+                throw new RuntimeException("Invalid username or password");
+            }
+            
+            // Check if user account is active
+            if (user.getStatus() != User.UserStatus.ACTIVE) {
+                throw new RuntimeException("Your account has been deactivated. Please contact administrator.");
+            }
+            
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
@@ -67,20 +86,30 @@ public class AuthService {
             String jwt = jwtUtils.generateJwtToken(authentication);
             
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-            User user = userRepository.findByUsername(userPrincipal.getUsername())
+            User authenticatedUser = userRepository.findByUsername(userPrincipal.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Double-check status after authentication
+            if (authenticatedUser.getStatus() != User.UserStatus.ACTIVE) {
+                throw new RuntimeException("Your account has been deactivated. Please contact administrator.");
+            }
+            
             LocalDateTime expiresAt = LocalDateTime.now().plusDays(1); // JWT expires in 1 day
             
             return new JwtResponseDto(
                 jwt,
-                user.getId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRole().name(),
+                authenticatedUser.getId(),
+                authenticatedUser.getUsername(),
+                authenticatedUser.getEmail(),
+                authenticatedUser.getFirstName(),
+                authenticatedUser.getLastName(),
+                authenticatedUser.getRole().name(),
                 expiresAt
             );
+        } catch (org.springframework.security.authentication.DisabledException e) {
+            throw new RuntimeException("Your account has been deactivated. Please contact administrator.");
+        } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            throw new RuntimeException("Invalid username or password");
         } catch (Exception e) {
             System.err.println("Authentication error: " + e.getMessage());
             e.printStackTrace();

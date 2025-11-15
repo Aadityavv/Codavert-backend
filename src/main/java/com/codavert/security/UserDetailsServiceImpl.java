@@ -21,6 +21,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
         
+        // Check if user account is active
+        if (user.getStatus() != User.UserStatus.ACTIVE) {
+            throw new org.springframework.security.authentication.DisabledException("User account is deactivated");
+        }
+        
         return UserPrincipal.create(user);
     }
 }
