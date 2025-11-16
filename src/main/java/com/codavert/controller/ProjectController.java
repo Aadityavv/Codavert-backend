@@ -7,7 +7,9 @@ import com.codavert.service.ActivityLogService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,9 +35,31 @@ public class ProjectController {
     // Admin-only: fetch all projects
     @GetMapping("/admin")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Page<Project>> getAllProjectsForAdmin(Pageable pageable) {
-        Page<Project> projects = projectService.getAllProjects(pageable);
-        return ResponseEntity.ok(projects);
+    public ResponseEntity<Page<Project>> getAllProjectsForAdmin(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1000") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        try {
+            // Parse sort parameter
+            String[] sortParams = sort.split(",");
+            String sortField = sortParams[0];
+            Sort.Direction direction = sortParams.length > 1 && 
+                sortParams[1].equalsIgnoreCase("asc") 
+                ? Sort.Direction.ASC 
+                : Sort.Direction.DESC;
+            
+            // Create pageable with sorting
+            Pageable pageable = PageRequest.of(
+                page, 
+                size, 
+                Sort.by(direction, sortField)
+            );
+            
+            Page<Project> projects = projectService.getAllProjects(pageable);
+            return ResponseEntity.ok(projects);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
     
     @GetMapping("/{id}")

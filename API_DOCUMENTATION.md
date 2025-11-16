@@ -6,16 +6,16 @@ The Codavert API is a comprehensive REST API for managing freelancing projects, 
 
 ## Base Information
 
-- **Base URL**: `https://codavert.onrender.com/api`
+- **Base URL**: `http://localhost:8081/api`
 - **API Version**: 1.0.0
 - **Authentication**: JWT Bearer Token
 - **Content Type**: `application/json`
 
 ## Quick Access
 
-- **Swagger UI**: `https://codavert.onrender.com/api/swagger-ui.html`
-- **OpenAPI JSON**: `https://codavert.onrender.com/api/api-docs`
-- **H2 Database Console**: `https://codavert.onrender.com/api/h2-console`
+- **Swagger UI**: `http://localhost:8081/api/swagger-ui.html`
+- **OpenAPI JSON**: `http://localhost:8081/api/api-docs`
+- **H2 Database Console**: `http://localhost:8081/api/h2-console`
 
 ## Authentication
 
@@ -30,7 +30,7 @@ Authorization: Bearer <your-jwt-token>
 Use the `/api/auth/signin` endpoint to obtain a JWT token:
 
 ```bash
-curl -X POST https://codavert.onrender.com/api/auth/signin \
+curl -X POST http://localhost:8081/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{
     "username": "admin",
@@ -466,20 +466,20 @@ All endpoints may return the following error responses:
 
 1. **Login**:
 ```bash
-curl -X POST https://codavert.onrender.com/api/auth/signin \
+curl -X POST http://localhost:8081/api/auth/signin \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "admin123"}'
 ```
 
 2. **Get Clients** (replace TOKEN with actual token):
 ```bash
-curl -X GET "https://codavert.onrender.com/api/clients?userId=1" \
+curl -X GET "http://localhost:8081/api/clients?userId=1" \
   -H "Authorization: Bearer TOKEN"
 ```
 
 3. **Create Client**:
 ```bash
-curl -X POST https://codavert.onrender.com/api/clients?userId=1 \
+curl -X POST http://localhost:8081/api/clients?userId=1 \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -494,7 +494,7 @@ curl -X POST https://codavert.onrender.com/api/clients?userId=1 \
 
 ### Using Swagger UI
 
-1. Navigate to `https://codavert.onrender.com/api/swagger-ui.html`
+1. Navigate to `http://localhost:8081/api/swagger-ui.html`
 2. Click "Authorize" button
 3. Enter your JWT token in the format: `Bearer <your-token>`
 4. Test any endpoint directly from the interface

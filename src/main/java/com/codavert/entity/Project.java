@@ -1,6 +1,7 @@
 package com.codavert.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -95,12 +96,15 @@ public class Project {
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
     
+    @JsonIgnore
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProjectDocument> documents = new HashSet<>();
     
+    @JsonIgnore
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ProjectTask> tasks = new HashSet<>();
     
+    @JsonIgnore
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<TimeEntry> timeEntries = new HashSet<>();
     

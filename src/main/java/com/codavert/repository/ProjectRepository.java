@@ -3,6 +3,7 @@ package com.codavert.repository;
 import com.codavert.entity.Project;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -55,4 +56,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     @Query("SELECT SUM(p.budget) FROM Project p WHERE p.user.id = :userId AND p.status = :status")
     Double sumBudgetByUserIdAndStatus(@Param("userId") Long userId, 
                                      @Param("status") Project.ProjectStatus status);
+    
+    // Admin: Get all projects with eager loading of user and client
+    // DISTINCT prevents duplicate results from joins
+    @EntityGraph(attributePaths = {"user", "client"})
+    @Query("SELECT DISTINCT p FROM Project p")
+    Page<Project> findAllProjectsForAdmin(Pageable pageable);
 }

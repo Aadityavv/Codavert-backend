@@ -163,7 +163,10 @@ public class ProjectService {
     }
 
     // Admin: get all projects without user filtering
+    // Uses custom query with eager loading and sorting to prevent duplicates
     public Page<Project> getAllProjects(Pageable pageable) {
-        return projectRepository.findAll(pageable);
+        // Use custom method with EntityGraph to eagerly load relationships
+        // This prevents lazy loading issues and ensures proper pagination
+        return projectRepository.findAllProjectsForAdmin(pageable);
     }
 }
