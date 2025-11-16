@@ -57,7 +57,7 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8081/api")
+                                .url("https://codavert.onrender.com/api")
                                 .description("Development Server"),
                         new Server()
                                 .url("https://api.codavert.com")
