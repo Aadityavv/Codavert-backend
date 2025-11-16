@@ -23,6 +23,11 @@ public interface ProjectTaskRepository extends JpaRepository<ProjectTask, Long> 
     // Find tasks by project and status
     List<ProjectTask> findByProject_IdAndStatus(Long projectId, TaskStatus status);
     
+    // Paged variants
+    org.springframework.data.domain.Page<ProjectTask> findByProject_IdAndStatus(Long projectId, TaskStatus status, org.springframework.data.domain.Pageable pageable);
+    
+    org.springframework.data.domain.Page<ProjectTask> findByStatus(TaskStatus status, org.springframework.data.domain.Pageable pageable);
+    
     // Find tasks assigned to a user
     Page<ProjectTask> findByAssignedToUserId(Long userId, Pageable pageable);
     
