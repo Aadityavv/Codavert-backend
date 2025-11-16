@@ -161,4 +161,9 @@ public class ProjectService {
     public List<Project> getProjectsByAssignedEmployee(Long employeeId) {
         return projectTaskRepository.findProjectsByAssignedUserId(employeeId);
     }
+
+    // Admin: get all projects without user filtering
+    public Page<Project> getAllProjects(Pageable pageable) {
+        return projectRepository.findAll(pageable);
+    }
 }

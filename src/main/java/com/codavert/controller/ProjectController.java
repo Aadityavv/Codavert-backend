@@ -29,6 +29,14 @@ public class ProjectController {
         Page<Project> projects = projectService.getAllProjectsByUserId(userId, pageable);
         return ResponseEntity.ok(projects);
     }
+
+    // Admin-only: fetch all projects
+    @GetMapping("/admin")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<Project>> getAllProjectsForAdmin(Pageable pageable) {
+        Page<Project> projects = projectService.getAllProjects(pageable);
+        return ResponseEntity.ok(projects);
+    }
     
     @GetMapping("/{id}")
     public ResponseEntity<?> getProjectById(@PathVariable Long id) {
