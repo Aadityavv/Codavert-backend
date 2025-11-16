@@ -70,7 +70,6 @@ com\codavert\dto\LoginRequestDto.class
 com\codavert\entity\SRS.class
 com\codavert\entity\JobPosting$JobType.class
 com\codavert\dto\ClientDto.class
-com\codavert\dto\AssignedTaskViewDto.class
 com\codavert\config\JpaConfig.class
 com\codavert\entity\ProjectDocument.class
 com\codavert\dto\document\MOURequestDto.class
