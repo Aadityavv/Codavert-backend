@@ -81,6 +81,11 @@ public class ClientService {
         return clientRepository.findByUserId(userId);
     }
     
+    // Admin: get all clients without user filter
+    public Page<Client> getAllClients(Pageable pageable) {
+        return clientRepository.findAll(pageable);
+    }
+    
     public Optional<Client> getClientById(Long id) {
         return clientRepository.findById(id);
     }

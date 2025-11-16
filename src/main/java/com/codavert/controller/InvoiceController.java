@@ -23,6 +23,13 @@ public class InvoiceController {
     public ResponseEntity<Page<Invoice>> getInvoices(@RequestParam Long userId, Pageable pageable) {
         return ResponseEntity.ok(invoiceService.getInvoicesByUserId(userId, pageable));
     }
+    
+    // Admin-only: fetch all invoices
+    @GetMapping("/admin")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<Invoice>> getAllInvoicesAdmin(Pageable pageable) {
+        return ResponseEntity.ok(invoiceService.getAllInvoices(pageable));
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getInvoiceById(@PathVariable Long id) {

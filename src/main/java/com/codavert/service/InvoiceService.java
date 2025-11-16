@@ -30,6 +30,11 @@ public class InvoiceService {
     public Page<Invoice> getInvoicesByUserId(Long userId, Pageable pageable) {
         return invoiceRepository.findByUserId(userId, pageable);
     }
+    
+    // Admin: get all invoices
+    public Page<Invoice> getAllInvoices(Pageable pageable) {
+        return invoiceRepository.findAll(pageable);
+    }
 
     public Optional<Invoice> getInvoiceById(Long id) {
         return invoiceRepository.findById(id);

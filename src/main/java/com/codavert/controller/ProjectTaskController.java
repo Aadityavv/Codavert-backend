@@ -2,6 +2,7 @@ package com.codavert.controller;
 
 import com.codavert.dto.ProjectTaskDto;
 import com.codavert.dto.BulkTaskAssignmentDto;
+import com.codavert.dto.AssignedTaskViewDto;
 import com.codavert.entity.Project;
 import com.codavert.entity.ProjectTask;
 import com.codavert.entity.ProjectTask.TaskStatus;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tasks")
@@ -215,6 +217,43 @@ public class ProjectTaskController {
         Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
         Page<ProjectTask> tasks = taskRepository.findByAssignedToUserId(userId, pageable);
         return ResponseEntity.ok(tasks);
+    }
+    
+    @GetMapping("/assigned")
+    @Operation(summary = "Admin: Get all assigned tasks with employee and project details")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<AssignedTaskViewDto>> getAssignedTasks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) String status) {
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dueDate").ascending());
+        Page<ProjectTask> tasks;
+        
+        if (projectId != null && status != null) {
+            tasks = taskRepository.findByProject_IdAndStatus(projectId, ProjectTask.TaskStatus.valueOf(status), pageable);
+        } else if (projectId != null) {
+            tasks = taskRepository.findByProject_Id(projectId, pageable);
+        } else if (status != null) {
+            tasks = taskRepository.findByStatus(ProjectTask.TaskStatus.valueOf(status), pageable);
+        } else {
+            tasks = taskRepository.findAll(pageable);
+        }
+        
+        Page<AssignedTaskViewDto> result = tasks.map(task -> {
+            String projectTitle = task.getProject() != null ? task.getProject().getTitle() : null;
+            Long empId = task.getAssignedToUserId();
+            if (empId == null) {
+                return AssignedTaskViewDto.from(task, projectTitle, null, null, null, null, null);
+            }
+            return userRepository.findById(empId)
+                    .map(u -> AssignedTaskViewDto.from(task, projectTitle, u.getId(),
+                            u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone()))
+                    .orElse(AssignedTaskViewDto.from(task, projectTitle, empId, null, null, null, null));
+        });
+        
+        return ResponseEntity.ok(result);
     }
     
     @PatchMapping("/{id}/status")

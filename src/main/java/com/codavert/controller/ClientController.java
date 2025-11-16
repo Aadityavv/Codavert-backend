@@ -85,6 +85,14 @@ public class ClientController {
         return ResponseEntity.ok(clients);
     }
     
+    // Admin-only: fetch all clients
+    @GetMapping("/admin")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<Client>> getAllClientsAdmin(Pageable pageable) {
+        Page<Client> clients = clientService.getAllClients(pageable);
+        return ResponseEntity.ok(clients);
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<?> getClientById(@PathVariable Long id) {
         return clientService.getClientById(id)
