@@ -25,3 +25,4 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
 
 
+

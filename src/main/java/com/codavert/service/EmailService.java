@@ -344,7 +344,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
             helper.setFrom(fromEmail);
             helper.setTo(candidateEmail);
-            helper.setSubject("📅 Interview Invitation - " + position + " at Codavert");
+            helper.setSubject("Interview Invitation - " + position + " at Codavert");
             
             String htmlContent = buildInterviewInvitationEmail(candidateName, position, interviewDate, 
                                                               interviewTime, meetLink, notes);
@@ -410,6 +410,105 @@ public class EmailService {
     }
     
     /**
+     * Send rejection email to candidate
+     */
+    @Async
+    public void sendRejectionEmail(String candidateEmail, String candidateName, String position, String notes) {
+        if (!isEmailConfigured()) {
+            logger.warn("Skipping rejection email (not configured) for: {}", candidateEmail);
+            return;
+        }
+        
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(candidateEmail);
+            helper.setSubject("Update on Your Application - " + position + " at Codavert");
+            
+            String htmlContent = buildRejectionEmail(candidateName, position, notes);
+            helper.setText(htmlContent, true);
+            
+            logger.info("Sending rejection email to {}", candidateEmail);
+            mailSender.send(message);
+            logger.info("✅ Rejection email sent successfully to {}", candidateEmail);
+            
+        } catch (Exception e) {
+            logger.error("Failed to send rejection email to {}: {}", candidateEmail, e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Build HTML email for rejection
+     */
+    private String buildRejectionEmail(String candidateName, String position, String notes) {
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>");
+        html.append("<html>");
+        html.append("<head>");
+        html.append("<meta charset=\"UTF-8\">");
+        html.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
+        html.append("<style>");
+        html.append("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; ");
+        html.append("line-height: 1.6; color: #1a1a1a; background-color: #f5f5f5; margin: 0; padding: 0; }");
+        html.append(".email-wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; }");
+        html.append(".header { background: #1a1a1a; color: #ffffff; padding: 40px 30px; text-align: center; }");
+        html.append(".header h1 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }");
+        html.append(".header .subtitle { margin: 8px 0 0 0; font-size: 14px; color: #b0b0b0; font-weight: 400; }");
+        html.append(".content { padding: 40px 30px; background: #ffffff; }");
+        html.append(".greeting { font-size: 16px; color: #1a1a1a; margin-bottom: 20px; }");
+        html.append(".intro-text { font-size: 15px; color: #4a4a4a; margin-bottom: 30px; line-height: 1.7; }");
+        html.append(".notes-section { background: #fff9e6; border-left: 4px solid #ffc107; ");
+        html.append("padding: 20px; border-radius: 4px; margin: 30px 0; }");
+        html.append(".notes-section p { font-size: 14px; color: #856404; margin: 0; white-space: pre-wrap; line-height: 1.6; }");
+        html.append(".closing { font-size: 15px; color: #4a4a4a; margin-top: 32px; }");
+        html.append(".signature { margin-top: 24px; }");
+        html.append(".signature-name { font-size: 15px; font-weight: 600; color: #1a1a1a; margin: 4px 0; }");
+        html.append(".signature-title { font-size: 13px; color: #6c757d; }");
+        html.append(".footer { background: #f8f9fa; padding: 24px 30px; text-align: center; border-top: 1px solid #e9ecef; }");
+        html.append(".footer-text { font-size: 12px; color: #6c757d; margin: 0; line-height: 1.6; }");
+        html.append(".footer-company { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }");
+        html.append("@media only screen and (max-width: 600px) { ");
+        html.append(".content { padding: 30px 20px; } ");
+        html.append(".header { padding: 30px 20px; } ");
+        html.append(".footer { padding: 20px; } ");
+        html.append("} ");
+        html.append("</style>");
+        html.append("</head>");
+        html.append("<body>");
+        html.append("<div class=\"email-wrapper\">");
+        html.append("<div class=\"header\">");
+        html.append("<h1>Application Update</h1>");
+        html.append("<p class=\"subtitle\">Codavert - Professional Software Development</p>");
+        html.append("</div>");
+        html.append("<div class=\"content\">");
+        html.append("<p class=\"greeting\">Dear ").append(escapeHtml(candidateName)).append(",</p>");
+        html.append("<p class=\"intro-text\">Thank you for your interest in the <strong>").append(escapeHtml(position));
+        html.append("</strong> position at Codavert and for taking the time to apply.</p>");
+        html.append("<p class=\"intro-text\">After careful consideration of all applications, we have decided to move forward with other candidates whose qualifications more closely match our current needs.</p>");
+        if (notes != null && !notes.isEmpty()) {
+            html.append("<div class=\"notes-section\">");
+            html.append("<p>").append(escapeHtml(notes)).append("</p>");
+            html.append("</div>");
+        }
+        html.append("<p class=\"closing\">We appreciate your interest in Codavert and encourage you to apply for future positions that may be a better fit for your skills and experience.</p>");
+        html.append("<div class=\"signature\">");
+        html.append("<div class=\"signature-name\">Best regards,</div>");
+        html.append("<div class=\"signature-name\">Codavert Recruitment Team</div>");
+        html.append("<div class=\"signature-title\">Human Resources</div>");
+        html.append("</div>");
+        html.append("</div>");
+        html.append("<div class=\"footer\">");
+        html.append("<p class=\"footer-company\">Codavert</p>");
+        html.append("<p class=\"footer-text\">This is an automated email. Please do not reply directly to this message.</p>");
+        html.append("</div>");
+        html.append("</div>");
+        html.append("</body>");
+        html.append("</html>");
+        return html.toString();
+    }
+    
+    /**
      * Build HTML email for interview invitation
      */
     private String buildInterviewInvitationEmail(String candidateName, String position, String interviewDate,
@@ -418,59 +517,104 @@ public class EmailService {
         html.append("<!DOCTYPE html>");
         html.append("<html>");
         html.append("<head>");
+        html.append("<meta charset=\"UTF-8\">");
+        html.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">");
         html.append("<style>");
-        html.append("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; ");
-        html.append("line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 20px; }");
-        html.append(".container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 10px; ");
-        html.append("overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }");
-        html.append(".header { background: linear-gradient(135deg, #8b45ff 0%, #00d4ff 100%); ");
-        html.append("color: white; padding: 30px; text-align: center; }");
-        html.append(".content { padding: 30px; }");
-        html.append(".meet-button { display: inline-block; background: #00832d; color: white; ");
-        html.append("padding: 12px 24px; text-decoration: none; border-radius: 6px; ");
-        html.append("font-weight: 600; margin: 20px 0; }");
-        html.append(".info-box { background: #f0f9ff; border-left: 4px solid #0ea5e9; ");
-        html.append("padding: 15px; margin: 20px 0; border-radius: 4px; }");
-        html.append(".footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; ");
-        html.append("color: #666; }");
+        html.append("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; ");
+        html.append("line-height: 1.6; color: #1a1a1a; background-color: #f5f5f5; margin: 0; padding: 0; }");
+        html.append(".email-wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; }");
+        html.append(".header { background: #1a1a1a; color: #ffffff; padding: 40px 30px; text-align: center; }");
+        html.append(".header h1 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.5px; }");
+        html.append(".header .subtitle { margin: 8px 0 0 0; font-size: 14px; color: #b0b0b0; font-weight: 400; }");
+        html.append(".content { padding: 40px 30px; background: #ffffff; }");
+        html.append(".greeting { font-size: 16px; color: #1a1a1a; margin-bottom: 20px; }");
+        html.append(".intro-text { font-size: 15px; color: #4a4a4a; margin-bottom: 30px; line-height: 1.7; }");
+        html.append(".details-card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; ");
+        html.append("padding: 24px; margin: 30px 0; }");
+        html.append(".detail-row { display: flex; align-items: flex-start; margin-bottom: 16px; padding-bottom: 16px; ");
+        html.append("border-bottom: 1px solid #e9ecef; }");
+        html.append(".detail-row:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }");
+        html.append(".detail-label { font-size: 12px; font-weight: 600; color: #6c757d; text-transform: uppercase; ");
+        html.append("letter-spacing: 0.5px; min-width: 80px; margin-right: 20px; }");
+        html.append(".detail-value { font-size: 15px; color: #1a1a1a; font-weight: 500; flex: 1; }");
+        html.append(".meet-button-container { text-align: center; margin: 32px 0; }");
+        html.append(".meet-button { display: inline-block; background: #00832d; color: #ffffff; ");
+        html.append("padding: 14px 32px; text-decoration: none; border-radius: 6px; ");
+        html.append("font-weight: 600; font-size: 15px; letter-spacing: 0.3px; ");
+        html.append("box-shadow: 0 2px 4px rgba(0, 131, 45, 0.2); transition: all 0.2s; }");
+        html.append(".meet-button:hover { background: #006b24; box-shadow: 0 4px 8px rgba(0, 131, 45, 0.3); }");
+        html.append(".link-text { text-align: center; font-size: 13px; color: #6c757d; margin-top: 16px; }");
+        html.append(".link-code { display: inline-block; background: #f8f9fa; border: 1px solid #e9ecef; ");
+        html.append("padding: 8px 12px; border-radius: 4px; font-family: 'Courier New', monospace; ");
+        html.append("font-size: 12px; color: #495057; word-break: break-all; margin-top: 8px; }");
+        html.append(".notes-section { background: #fff9e6; border-left: 4px solid #ffc107; ");
+        html.append("padding: 20px; border-radius: 4px; margin: 30px 0; }");
+        html.append(".notes-section strong { font-size: 14px; color: #856404; display: block; margin-bottom: 8px; }");
+        html.append(".notes-section p { font-size: 14px; color: #856404; margin: 0; white-space: pre-wrap; line-height: 1.6; }");
+        html.append(".closing { font-size: 15px; color: #4a4a4a; margin-top: 32px; }");
+        html.append(".signature { margin-top: 24px; }");
+        html.append(".signature-name { font-size: 15px; font-weight: 600; color: #1a1a1a; margin: 4px 0; }");
+        html.append(".signature-title { font-size: 13px; color: #6c757d; }");
+        html.append(".footer { background: #f8f9fa; padding: 24px 30px; text-align: center; border-top: 1px solid #e9ecef; }");
+        html.append(".footer-text { font-size: 12px; color: #6c757d; margin: 0; line-height: 1.6; }");
+        html.append(".footer-company { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 4px; }");
+        html.append("@media only screen and (max-width: 600px) { ");
+        html.append(".content { padding: 30px 20px; } ");
+        html.append(".header { padding: 30px 20px; } ");
+        html.append(".footer { padding: 20px; } ");
+        html.append("} ");
         html.append("</style>");
         html.append("</head>");
         html.append("<body>");
-        html.append("<div class=\"container\">");
+        html.append("<div class=\"email-wrapper\">");
         html.append("<div class=\"header\">");
-        html.append("<h1 style=\"margin: 0; font-size: 24px;\">📅 Interview Invitation</h1>");
+        html.append("<h1>Interview Invitation</h1>");
+        html.append("<p class=\"subtitle\">Codavert - Professional Software Development</p>");
         html.append("</div>");
         html.append("<div class=\"content\">");
-        html.append("<p>Dear ").append(escapeHtml(candidateName)).append(",</p>");
-        html.append("<p>Thank you for your interest in the <strong>").append(escapeHtml(position));
-        html.append("</strong> position at Codavert.</p>");
-        html.append("<p>We would like to invite you for an interview. Please find the details below:</p>");
-        html.append("<div class=\"info-box\">");
-        html.append("<p style=\"margin: 5px 0;\"><strong>📅 Date:</strong> ").append(escapeHtml(interviewDate)).append("</p>");
-        html.append("<p style=\"margin: 5px 0;\"><strong>⏰ Time:</strong> ").append(escapeHtml(interviewTime)).append("</p>");
-        html.append("<p style=\"margin: 5px 0;\"><strong>📍 Location:</strong> Google Meet (Online)</p>");
+        html.append("<p class=\"greeting\">Dear ").append(escapeHtml(candidateName)).append(",</p>");
+        html.append("<p class=\"intro-text\">Thank you for your interest in the <strong>").append(escapeHtml(position));
+        html.append("</strong> position at Codavert. We have reviewed your application and are impressed with your qualifications.</p>");
+        html.append("<p class=\"intro-text\">We would like to invite you to participate in an interview to further discuss your background and explore how you might contribute to our team.</p>");
+        html.append("<div class=\"details-card\">");
+        html.append("<div class=\"detail-row\">");
+        html.append("<div class=\"detail-label\">Date</div>");
+        html.append("<div class=\"detail-value\">").append(escapeHtml(interviewDate)).append("</div>");
+        html.append("</div>");
+        html.append("<div class=\"detail-row\">");
+        html.append("<div class=\"detail-label\">Time</div>");
+        html.append("<div class=\"detail-value\">").append(escapeHtml(interviewTime)).append("</div>");
+        html.append("</div>");
+        html.append("<div class=\"detail-row\">");
+        html.append("<div class=\"detail-label\">Location</div>");
+        html.append("<div class=\"detail-value\">Google Meet (Online)</div>");
+        html.append("</div>");
         html.append("</div>");
         if (meetLink != null && !meetLink.isEmpty()) {
-            html.append("<p style=\"text-align: center;\">");
+            html.append("<div class=\"meet-button-container\">");
             html.append("<a href=\"").append(escapeHtml(meetLink)).append("\" class=\"meet-button\">");
-            html.append("🔗 Join Google Meet</a>");
-            html.append("</p>");
-            html.append("<p style=\"text-align: center; font-size: 12px; color: #666;\">");
-            html.append("Or copy this link: <br><code style=\"background: #f1f5f9; padding: 4px 8px; ");
-            html.append("border-radius: 4px; word-break: break-all;\">").append(escapeHtml(meetLink));
-            html.append("</code></p>");
-        }
-        if (notes != null && !notes.isEmpty()) {
-            html.append("<div style=\"background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;\">");
-            html.append("<strong>Additional Notes:</strong><br>");
-            html.append("<p style=\"white-space: pre-wrap;\">").append(escapeHtml(notes)).append("</p>");
+            html.append("Join Google Meet</a>");
+            html.append("<p class=\"link-text\">Or copy this link:</p>");
+            html.append("<div class=\"link-code\">").append(escapeHtml(meetLink)).append("</div>");
             html.append("</div>");
         }
-        html.append("<p>We look forward to speaking with you!</p>");
-        html.append("<p>Best regards,<br><strong>Codavert Team</strong></p>");
+        if (notes != null && !notes.isEmpty()) {
+            html.append("<div class=\"notes-section\">");
+            html.append("<strong>Additional Information</strong>");
+            html.append("<p>").append(escapeHtml(notes)).append("</p>");
+            html.append("</div>");
+        }
+        html.append("<p class=\"closing\">We look forward to the opportunity to speak with you and learn more about your experience and career goals.</p>");
+        html.append("<div class=\"signature\">");
+        html.append("<div class=\"signature-name\">Best regards,</div>");
+        html.append("<div class=\"signature-name\">Codavert Recruitment Team</div>");
+        html.append("<div class=\"signature-title\">Human Resources</div>");
+        html.append("</div>");
         html.append("</div>");
         html.append("<div class=\"footer\">");
-        html.append("<p>This is an automated email from Codavert.</p>");
+        html.append("<p class=\"footer-company\">Codavert</p>");
+        html.append("<p class=\"footer-text\">This is an automated email. Please do not reply directly to this message.</p>");
+        html.append("<p class=\"footer-text\">If you have any questions or need to reschedule, please contact us at your earliest convenience.</p>");
         html.append("</div>");
         html.append("</div>");
         html.append("</body>");

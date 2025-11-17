@@ -19,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.Arrays;
 
@@ -64,6 +65,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/job-postings/**").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/job-applications").permitAll() // Allow public job application submissions
                     .requestMatchers("/api/public/**").permitAll()
                     .requestMatchers("/api/contact/**").permitAll() // Allow contact form submissions
                     .requestMatchers("/actuator/**").permitAll()

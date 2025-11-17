@@ -202,6 +202,34 @@ public class JobApplicationController {
         }
     }
     
+    @PostMapping("/{id}/send-rejection-email")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Send rejection email to candidate (Admin only)")
+    public ResponseEntity<?> sendRejectionEmail(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        try {
+            JobApplication application = jobApplicationService.getApplicationById(id);
+            
+            String notes = request.getOrDefault("notes", "");
+            
+            emailService.sendRejectionEmail(
+                application.getEmail(),
+                application.getFullName(),
+                application.getPosition(),
+                notes
+            );
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("success", "true");
+            response.put("message", "Rejection email sent successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Error sending rejection email: " + e.getMessage());
+        }
+    }
+    
     @PostMapping("/{id}/accept-offer")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Accept offer and create employee account (Admin only)")
@@ -219,6 +247,7 @@ public class JobApplicationController {
         }
     }
 }
+
 
 
 
